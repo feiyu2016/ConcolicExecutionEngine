@@ -28,10 +28,10 @@ public class ExecutionEngine {
 		UIModelGraph model = builder.getUIModel();
 		model.enableGUI();
 		
-		System.out.println("getEventDeposit");
+/*		System.out.println("getEventDeposit");
 		for(Event e: builder.getEventDeposit()){
-			System.out.println(e);
-		}
+			System.out.println(e.getEventType());
+		}*/
 
 		System.out.println("getEventMethodMap");
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
