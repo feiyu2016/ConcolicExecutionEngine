@@ -27,7 +27,7 @@ public class ExecutionEngine {
 		cE.printOutPS = false;
 		///////////////
 		UIModelGenerator builder = new UIModelGenerator(testApp);
-		builder.buildOrRead(false);
+		builder.buildOrRead(true);
 		
 		//UIModelGraph model = builder.getUIModel();
 		//model.enableGUI();
