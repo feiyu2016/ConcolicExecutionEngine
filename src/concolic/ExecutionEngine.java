@@ -29,17 +29,20 @@ public class ExecutionEngine {
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(forceAllSteps);
 		
-		UIModelGraph model = builder.getUIModel();
-		model.enableGUI();
+		//UIModelGraph model = builder.getUIModel();
+		//model.enableGUI();
 		
-		System.out.println("getEventDeposit");
-		for(Event e: builder.getEventDeposit()){
-			System.out.println(e);
-		}
+		//System.out.println("getEventDeposit");
+		//for(Event e: builder.getEventDeposit()){
+		//	System.out.println(e);
+		//}
 
-		System.out.println("getEventMethodMap");
+		//System.out.println("getEventMethodMap");
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			System.out.println(entry);
+			String methodSig = entry.getKey();
+			List<Event> eventSeq = entry.getValue();
+			
 		}
 		
 
