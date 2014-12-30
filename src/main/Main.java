@@ -1,10 +1,6 @@
 package main;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Random;
 
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
@@ -12,7 +8,6 @@ import staticFamily.StaticMethod;
 import tools.Adb;
 import analysis.StaticInfo;
 import concolic.Condition;
-import concolic.Execution;
 import concolic.ExecutionEngine;
 import concolic.Operation;
 import concolic.PathSummary;
@@ -25,19 +20,16 @@ public class Main {
 	public static void main(String[] args) {
 		
 		String[] apps = {
-/* 0 */		"C:/Users/Wenhao/Documents/juno_workspace/AndroidTest/bin/TheApp.apk",
-				"C:/Users/Wenhao/Documents/juno_workspace/AndroidTest/bin/AndroidTest.apk",
-				"/home/wenhaoc/AppStorage/Fast.apk",
+/* 0 */			"/home/wenhaoc/AppStorage/Fast.apk",
 				"/home/wenhaoc/AppStorage/APAC_engagement/backupHelper/backupHelper.apk",
 				"/home/wenhaoc/AppStorage/APAC_engagement/Butane/Butane.apk",
-/* 5 */		"/home/wenhaoc/AppStorage/APAC_engagement/CalcA/CalcA.apk",
+/* 3 */			"/home/wenhaoc/AppStorage/APAC_engagement/CalcA/CalcA.apk",
 				"/home/wenhaoc/AppStorage/APAC_engagement/KitteyKittey/KitteyKittey.apk",
-				"/home/wenhaoc/AppStorage/net.mandaria.tippytipper.apk",
-				"/home/wenhaoc/adt_workspace/TheApp/bin/TheApp.apk",
-		
+/* 5 */			"/home/wenhaoc/AppStorage/net.mandaria.tippytipper.apk",
+/* 6 */			"/home/wenhaoc/adt_workspace/TheApp/bin/TheApp.apk",
 		};
 		
-		String apkPath = apps[0];
+		String apkPath = apps[6];
 		
 		testApp = StaticInfo.initAnalysis(apkPath, false);
 		
@@ -46,7 +38,6 @@ public class Main {
 		testApp = ee.buildPathSummaries();
 		
 		testPathSummaries();
-
 		
 	}
 	

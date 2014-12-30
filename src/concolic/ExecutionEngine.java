@@ -21,16 +21,16 @@ public class ExecutionEngine {
 	public StaticApp buildPathSummaries() {
 		
 		adb.uninstallApp(testApp.getPackageName());
-		adb.installApp(testApp.getSignedAppPath());
+		adb.installApp(testApp.getSmaliAppPath());
 		
 		Execution cE = new Execution(testApp);
 		cE.printOutPS = false;
-		///////////////
+		
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(true);
 		
-		//UIModelGraph model = builder.getUIModel();
-		//model.enableGUI();
+		UIModelGraph model = builder.getUIModel();
+		model.enableGUI();
 		
 		System.out.println("getEventDeposit");
 		for(Event e: builder.getEventDeposit()){
@@ -41,10 +41,9 @@ public class ExecutionEngine {
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			System.out.println(entry);
 		}
-		//////////////////
-/*		String eventHandlerMethodSig = "Lthe/app/Irwin$3;->onClick(Landroid/view/View;)V";
 		
-		cE.setTargetMethod(eventHandlerMethodSig);
+
+/*		cE.setTargetMethod("Lthe/app/Irwin$3;->onClick(Landroid/view/View;)V");
 		ArrayList<PathSummary> methodPSList = cE.doFullSymbolic();
 		this.testApp.findMethod(eventHandlerMethodSig).setPathSummaries(methodPSList);*/
 		
