@@ -35,7 +35,7 @@ public class Main {
 		
 		ExecutionEngine ee = new ExecutionEngine(testApp);
 		
-		testApp = ee.buildPathSummaries();
+		testApp = ee.buildPathSummaries(false);
 		
 		testPathSummaries();
 		

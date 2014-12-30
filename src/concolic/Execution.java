@@ -39,6 +39,13 @@ public class Execution {
 		this.jdb = new Jdb();
 	}
 	
+	public void init() {
+		this.adb = new Adb();
+		this.jdb = new Jdb();
+		this.pathSummaries = new ArrayList<PathSummary>();
+		this.toDoPathList = new ArrayList<ToDoPath>();
+	}
+	
 	public void setTargetMethod(String methodSig) {
 		this.eventHandlerMethod = staticApp.findMethod(methodSig);
 		if (eventHandlerMethod == null)

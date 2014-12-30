@@ -24,11 +24,12 @@ public class ExecutionEngine {
 		
 		adb.uninstallApp(testApp.getPackageName());
 		adb.installApp(testApp.getSootAppPath());
-
+		adb.startApp(testApp.getPackageName(), testApp.getMainActivity().getJavaName());
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(forceAllSteps);
 		UIModelGraph model = builder.getUIModel();
-
+		Execution ex = new Execution(testApp, builder.getExecutor());
+		
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			
 			String methodSig = entry.getKey();
@@ -39,7 +40,7 @@ public class ExecutionEngine {
 			System.out.println("[EventSequence]" + eventSeq);
 			
 			System.out.println("===========concolic starts");
-			Execution ex = new Execution(testApp, builder.getExecutor());
+			ex.init();
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
 			ArrayList<PathSummary> psList = ex.doConcolic();
