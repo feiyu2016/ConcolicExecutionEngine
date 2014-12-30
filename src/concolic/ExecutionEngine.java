@@ -24,10 +24,7 @@ public class ExecutionEngine {
 		
 		adb.uninstallApp(testApp.getPackageName());
 		adb.installApp(testApp.getSootAppPath());
-		
-		Execution cE = new Execution(testApp);
-		cE.printOutPS = false;
-		
+
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(forceAllSteps);
 		UIModelGraph model = builder.getUIModel();
@@ -37,11 +34,11 @@ public class ExecutionEngine {
 			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
 			System.out.println("\n[Method]" + methodSig);
 			System.out.println("[EventSequence]" + eventSeq);
-/*			Execution ex = new Execution(testApp);
+			Execution ex = new Execution(testApp, builder.getExecutor());
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
 			ArrayList<PathSummary> psList = ex.doConcolic();
-			this.testApp.findMethod(methodSig).setPathSummaries(psList);*/
+			this.testApp.findMethod(methodSig).setPathSummaries(psList);
 		}
 		
 		return this.testApp;

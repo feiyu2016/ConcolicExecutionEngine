@@ -17,11 +17,13 @@ import staticFamily.StaticStmt;
 import tools.Adb;
 import tools.Jdb;
 import zhen.version1.component.Event;
+import zhen.version1.component.WindowInformation;
+import zhen.version1.framework.Executer;
 
 public class Execution {
 
 	private StaticApp staticApp;
-	private String pkgName;
+	private Executer executer;
 	private StaticMethod eventHandlerMethod;
 	private List<Event> seq = new ArrayList<Event>();
 	private Adb adb;
@@ -30,9 +32,9 @@ public class Execution {
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
 	
-	public Execution(StaticApp staticApp) {
+	public Execution(StaticApp staticApp, Executer executer) {
 		this.staticApp = staticApp;
-		this.pkgName = staticApp.getPackageName();
+		this.executer = executer;
 		this.adb = new Adb();
 		this.jdb = new Jdb();
 	}
@@ -63,11 +65,15 @@ public class Execution {
 	
 	public ArrayList<PathSummary> doConcolic() {
 		try {
-
-			preparation();
 			
-			//TODO apply final event here
-			//adb.click(seq.get(seq.size()-1));
+			if (seqConsistsOfLaunchOnly()) {
+				return doFullSymbolic();
+			}
+				
+			preparation();
+
+			executer.applyEvent(seq.get(seq.size()-1));
+			
 			Thread.sleep(100);
 
 			PathSummary pS_0 = new PathSummary();
@@ -87,23 +93,32 @@ public class Execution {
 		return this.pathSummaries;
 	}
 
+	private boolean seqConsistsOfLaunchOnly() {
+		for (Event e : seq)
+			if (e.getEventType() != Event.iLAUNCH)
+				return false;
+		return true;
+	}
+
 	private void preparation() throws Exception{
 		System.out.print("\nReinstalling and Restarting App...  ");
 		adb.uninstallApp(staticApp.getPackageName());
 		adb.installApp(staticApp.getSmaliAppPath());
 		System.out.println("Done.");
-		adb.startApp(pkgName, staticApp.getMainActivity().getJavaName());
+		adb.startApp(staticApp.getPackageName(), staticApp.getMainActivity().getJavaName());
 		
 		System.out.print("\nInitiating jdb...  ");
-		jdb.init(pkgName);
+		jdb.init(staticApp.getPackageName());
 		System.out.println("Done.");
 		
 		System.out.print("\nGoing to Target Layout...  ");
 		
 		for (int i = 0, len = seq.size()-1; i < len; i++) {
-			//TODO apply the event seq except for the final event. Question: how long should the waiting time be?
-			//adb.click(seq.get(i));
-			Thread.sleep(300);
+			Event e = seq.get(i);
+			if (e.getEventType() != Event.iLAUNCH) {
+				this.executer.applyEvent(e);
+				WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
+			}
 		}
 		
 		System.out.println("Done.");
