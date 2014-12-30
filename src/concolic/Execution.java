@@ -3,6 +3,7 @@ package concolic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import smali.stmt.GotoStmt;
 import smali.stmt.IfStmt;
@@ -15,13 +16,14 @@ import staticFamily.StaticMethod;
 import staticFamily.StaticStmt;
 import tools.Adb;
 import tools.Jdb;
+import zhen.version1.component.Event;
 
 public class Execution {
 
 	private StaticApp staticApp;
 	private String pkgName;
 	private StaticMethod eventHandlerMethod;
-	private ArrayList<String> seq = new ArrayList<String>();
+	private List<Event> seq = new ArrayList<Event>();
 	private Adb adb;
 	private Jdb jdb;
 	private ArrayList<PathSummary> pathSummaries = new ArrayList<PathSummary>();
@@ -41,7 +43,7 @@ public class Execution {
 			System.out.println("eventhandler m null");
 	}
 	
-	public void setSequence(ArrayList<String> seq) {
+	public void setSequence(List<Event> seq) {
 		this.seq = seq;
 	}
 	
@@ -64,7 +66,8 @@ public class Execution {
 			
 			preparation();
 			
-			adb.click(seq.get(seq.size()-1));
+			//TODO apply final event here
+			//adb.click(seq.get(seq.size()-1));
 			Thread.sleep(100);
 
 			PathSummary pS_0 = new PathSummary();
@@ -96,10 +99,13 @@ public class Execution {
 		System.out.println("Done.");
 		
 		System.out.print("\nGoing to Target Layout...  ");
+		
 		for (int i = 0, len = seq.size()-1; i < len; i++) {
-			adb.click(seq.get(i));
+			//TODO apply the event seq except for the final event. Question: how long should the waiting time be?
+			//adb.click(seq.get(i));
 			Thread.sleep(300);
 		}
+		
 		System.out.println("Done.");
 		
 		for (int i : eventHandlerMethod.getSourceLineNumbers()) {

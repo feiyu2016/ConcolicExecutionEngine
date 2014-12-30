@@ -39,11 +39,12 @@ public class ExecutionEngine {
 
 		//System.out.println("getEventMethodMap");
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
-			System.out.println(entry);
 			String methodSig = entry.getKey();
 			List<Event> eventSeq = entry.getValue();
 			System.out.println("\n[Method]" + methodSig);
 			System.out.println("[EventSequence]" + eventSeq);
+			Event e0 = eventSeq.get(0);
+			
 		}
 		
 
