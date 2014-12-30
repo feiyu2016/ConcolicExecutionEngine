@@ -33,11 +33,13 @@ public class ExecutionEngine {
 			String methodSig = entry.getKey();
 			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
 			System.out.println("\n[Method]" + methodSig);
+			System.out.println("[SeqFromMap]" + entry.getValue());
 			System.out.println("[EventSequence]" + eventSeq);
 			Execution ex = new Execution(testApp, builder.getExecutor());
+			System.out.println("===========concolic starts");
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
-			System.out.println("===========concolic starts");
+			
 			ArrayList<PathSummary> psList = ex.doConcolic();
 			this.testApp.findMethod(methodSig).setPathSummaries(psList);
 		}

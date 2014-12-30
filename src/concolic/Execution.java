@@ -72,7 +72,7 @@ public class Execution {
 				
 			preparation();
 
-			executer.applyEvent(seq.get(seq.size()-1));
+			applyFinalEvent();
 			
 			Thread.sleep(100);
 
@@ -91,6 +91,11 @@ public class Execution {
 		}	catch (Exception e) {e.printStackTrace();}
 		
 		return this.pathSummaries;
+	}
+
+	private void applyFinalEvent() {
+		// TODO Auto-generated method stub
+		executer.applyEvent(seq.get(seq.size()-1));
 	}
 
 	private boolean seqConsistsOfLaunchOnly() {
