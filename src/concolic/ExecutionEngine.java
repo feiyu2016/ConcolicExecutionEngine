@@ -30,17 +30,20 @@ public class ExecutionEngine {
 		UIModelGraph model = builder.getUIModel();
 
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
+			
 			String methodSig = entry.getKey();
-			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
 			System.out.println("\n[Method]" + methodSig);
 			System.out.println("[SeqFromMap]" + entry.getValue());
+			
+			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
 			System.out.println("[EventSequence]" + eventSeq);
-			Execution ex = new Execution(testApp, builder.getExecutor());
+			
 			System.out.println("===========concolic starts");
+			Execution ex = new Execution(testApp, builder.getExecutor());
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
-			
 			ArrayList<PathSummary> psList = ex.doConcolic();
+			
 			this.testApp.findMethod(methodSig).setPathSummaries(psList);
 		}
 		
