@@ -21,7 +21,7 @@ public class ExecutionEngine {
 	public StaticApp buildPathSummaries() {
 		
 		adb.uninstallApp(testApp.getPackageName());
-		adb.installApp(testApp.getSmaliAppPath());
+		adb.installApp(testApp.getSootAppPath());
 		
 		Execution cE = new Execution(testApp);
 		cE.printOutPS = false;
