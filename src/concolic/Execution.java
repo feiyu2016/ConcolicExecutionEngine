@@ -93,17 +93,7 @@ public class Execution {
 		return this.pathSummaries;
 	}
 
-	private void applyFinalEvent() {
-		// TODO Auto-generated method stub
-		executer.applyEvent(seq.get(seq.size()-1));
-	}
 
-	private boolean seqConsistsOfLaunchOnly() {
-		for (Event e : seq)
-			if (e.getEventType() != Event.iLAUNCH)
-				return false;
-		return true;
-	}
 
 	private void preparation() throws Exception{
 		
@@ -359,6 +349,17 @@ public class Execution {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	private void applyFinalEvent() {
+		executer.applyEvent(seq.get(seq.size()-1));
+	}
+
+	private boolean seqConsistsOfLaunchOnly() {
+		for (Event e : seq)
+			if (e.getEventType() != Event.iLAUNCH)
+				return false;
+		return true;
+	}
 	
 	private ArrayList<String> getRemainingDirections(StaticStmt theS, String choice, StaticMethod m) {
 		ArrayList<String> remainingDirections = new ArrayList<String>();
