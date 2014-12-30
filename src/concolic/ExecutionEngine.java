@@ -51,7 +51,7 @@ public class ExecutionEngine {
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();
 		if (seqFromMap.get(0).getEventType() == Event.iLAUNCH) {
-			result.addAll(1, seqFromMap);
+			result.addAll(seqFromMap);
 		}
 		else {
 			UIState firstMainUI = model.getFirstMainUIState();
