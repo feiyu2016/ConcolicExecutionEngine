@@ -101,6 +101,7 @@ public class Execution {
 	}
 
 	private void preparation() throws Exception{
+		
 		System.out.print("\nReinstalling and Restarting App...  ");
 		adb.uninstallApp(staticApp.getPackageName());
 		adb.installApp(staticApp.getSmaliAppPath());

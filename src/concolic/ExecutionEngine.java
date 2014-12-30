@@ -37,6 +37,7 @@ public class ExecutionEngine {
 			Execution ex = new Execution(testApp, builder.getExecutor());
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
+			System.out.println("===========concolic starts");
 			ArrayList<PathSummary> psList = ex.doConcolic();
 			this.testApp.findMethod(methodSig).setPathSummaries(psList);
 		}
