@@ -53,14 +53,21 @@ public class ExecutionEngine {
 	
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();
-		if (seqFromMap.get(0).getEventType() == Event.iLAUNCH) {
-			result.addAll(seqFromMap);
+		List<Event> trimmedSeqFromMap = new ArrayList<Event>();
+		//TODO trim seqFromMap
+		for (Event e : seqFromMap) {
+			if (e.getEventType() == Event.iLAUNCH)
+				trimmedSeqFromMap = new ArrayList<Event>();
+			trimmedSeqFromMap.add(e);
+		}
+		if (trimmedSeqFromMap.get(0).getEventType() == Event.iLAUNCH) {
+			result.addAll(trimmedSeqFromMap);
 		}
 		else {
 			UIState firstMainUI = model.getFirstMainUIState();
-			List<Event> firstHalf = model.getEventSequence(firstMainUI, seqFromMap.get(0).getSource());
+			List<Event> firstHalf = model.getEventSequence(firstMainUI, trimmedSeqFromMap.get(0).getSource());
 			result.addAll(firstHalf);
-			result.addAll(seqFromMap);
+			result.addAll(trimmedSeqFromMap);
 		}
 		return result;
 	}
