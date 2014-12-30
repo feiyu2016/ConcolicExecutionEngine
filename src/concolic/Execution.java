@@ -63,7 +63,7 @@ public class Execution {
 	
 	public ArrayList<PathSummary> doConcolic() {
 		try {
-			
+
 			preparation();
 			
 			//TODO apply final event here
