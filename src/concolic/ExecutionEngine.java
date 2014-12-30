@@ -54,7 +54,6 @@ public class ExecutionEngine {
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();
 		List<Event> trimmedSeqFromMap = new ArrayList<Event>();
-		//TODO trim seqFromMap
 		for (Event e : seqFromMap) {
 			if (e.getEventType() == Event.iLAUNCH)
 				trimmedSeqFromMap = new ArrayList<Event>();
