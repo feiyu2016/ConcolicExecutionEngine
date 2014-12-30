@@ -18,7 +18,7 @@ public class ExecutionEngine {
 		this.testApp = testApp;
 	}
 	
-	public StaticApp buildPathSummaries() {
+	public StaticApp buildPathSummaries(boolean forceAllSteps) {
 		
 		adb.uninstallApp(testApp.getPackageName());
 		adb.installApp(testApp.getSootAppPath());
@@ -27,7 +27,7 @@ public class ExecutionEngine {
 		cE.printOutPS = false;
 		
 		UIModelGenerator builder = new UIModelGenerator(testApp);
-		builder.buildOrRead(true);
+		builder.buildOrRead(forceAllSteps);
 		
 		UIModelGraph model = builder.getUIModel();
 		model.enableGUI();
