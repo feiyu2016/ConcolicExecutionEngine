@@ -42,7 +42,8 @@ public class ExecutionEngine {
 			System.out.println(entry);
 			String methodSig = entry.getKey();
 			List<Event> eventSeq = entry.getValue();
-			
+			System.out.println("\n[Method]" + methodSig);
+			System.out.println("[EventSequence]" + eventSeq);
 		}
 		
 
