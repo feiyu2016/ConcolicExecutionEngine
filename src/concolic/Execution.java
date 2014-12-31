@@ -32,6 +32,10 @@ public class Execution {
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
 	
+	public Execution(StaticApp staticApp) {
+		this.staticApp = staticApp;
+	}
+	
 	public Execution(StaticApp staticApp, Executer executer) {
 		this.staticApp = staticApp;
 		this.executer = executer;
@@ -183,7 +187,15 @@ public class Execution {
 							cond.reverseCondition();
 						}
 						else throw (new Exception("Unexpected Line Number Following IfStmt" + bpInfo));
-						pushNewToDoPath(pS.getPathChoices(), lastPathStmtInfo, "" + remainingLine);
+						boolean shouldAdd = true;
+						for (String pC : pS.getPathChoices()) {
+							if (pC.equals(lastPathStmtInfo + "," + remainingLine)) {
+								shouldAdd = false;
+								break;
+							}
+						}
+						if (shouldAdd)
+							pushNewToDoPath(pS.getPathChoices(), lastPathStmtInfo, "" + remainingLine);
 						pS.addPathChoice(lastPathStmtInfo + "," + newHitLine);
 						pS.updatePathCondition(cond);
 					}
@@ -277,14 +289,16 @@ public class Execution {
 			pathSummaries.add(newPS);
 		}
 	}
-	
+
+
 	private PathSummary symbolicExecution(PathSummary pS, StaticMethod m, ToDoPath toDoPath, boolean inMainMethod) throws Exception{
 		
 		ArrayList<StaticStmt> allStmts = m.getSmaliStmts();
 		String className = m.getDeclaringClass(staticApp).getJavaName();
 		StaticStmt s = allStmts.get(0);
 		while (true) {
-			System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
+			//System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
+			System.out.println(s.getSourceLineNumber() + "  ");
 			pS.addExecutionLog(className + ":" + s.getSourceLineNumber());
 			if (s.endsMethod()) {
 				if (s instanceof ReturnStmt && !((ReturnStmt) s).returnsVoid())
@@ -308,15 +322,23 @@ public class Execution {
 						throw (new Exception("current PathStmt not synced with toDoPath.pastChoice. " + stmtInfo));
 					// haven't arrived target path stmt yet. So follow past choice, do not make new ToDoPath
 					choice = pastChoice;
+					System.out.println("aaaaaa");
+					
 				}
 				else if (toDoPath.getTargetPathStmtInfo().equals(stmtInfo)){
 					// this is the target path stmt
 					choice = stmtInfo + "," + toDoPath.getNewDirection();
+					System.out.println("bbbbbb");
+					toDoPath.setTargetPathStmtInfo("");
 				}
 				else {
 					// already passed target path stmt
-					choice = makeAPathChoice(s, stmtInfo, m);
-					remainingDirections = getRemainingDirections(s, choice, m);
+					/*TODO plan for loops:
+					 * 1. When making own decision, check pathChoices, if there are choices of that IfStmt, find the most recent one and go the opposite direction
+					 * 2. When building ToDoPath for the newDirection, if the newDirection already happened before this, then do not build ToDoPath
+					 * */
+					choice = makeAPathChoice(s, stmtInfo, m, pS);
+					remainingDirections = getRemainingDirections(s, choice, stmtInfo, m, pS);
 					for (String remainingDirection : remainingDirections) {
 						pushNewToDoPath(pS.getPathChoices(), stmtInfo, remainingDirection);
 					}
@@ -377,15 +399,29 @@ public class Execution {
 				return false;
 		return true;
 	}
-	
-	private ArrayList<String> getRemainingDirections(StaticStmt theS, String choice, StaticMethod m) {
+	/*TODO plan for loops:
+	 * 1. When making own decision, check pathChoices, if there are choices of that IfStmt, find the most recent one and go the opposite direction
+	 * 2. When building ToDoPath for the newDirection, if the newDirection already happened before this, then do not build ToDoPath
+	 * */
+	private ArrayList<String> getRemainingDirections(StaticStmt theS, String choice, String stmtInfo, StaticMethod m, PathSummary pS) {
 		ArrayList<String> remainingDirections = new ArrayList<String>();
 		if (theS instanceof IfStmt) {
 			IfStmt s = (IfStmt) theS;
 			int chosenLine = Integer.parseInt(choice.split(",")[1]);
+			int newDirection = -1;
 			if (chosenLine == s.getFlowThroughTargetLineNumber(m))
-				remainingDirections.add(s.getJumpTargetLineNumber(m) + "");
-			else remainingDirections.add(s.getFlowThroughTargetLineNumber(m) + "");
+				newDirection = s.getJumpTargetLineNumber(m);
+			else newDirection = s.getFlowThroughTargetLineNumber(m);
+			ArrayList<String> pathChoices = pS.getPathChoices();
+			boolean shouldAdd = true;
+			for (String pC : pathChoices) {
+				if (pC.equals(stmtInfo + "," + newDirection)) {
+					shouldAdd = false;
+					break;
+				}
+			}
+			if (shouldAdd)
+				remainingDirections.add(newDirection + "");
 		}
 		else if (theS instanceof SwitchStmt) {
 			SwitchStmt s = (SwitchStmt) theS;
@@ -446,12 +482,33 @@ public class Execution {
 		return nextLineNumber;
 	}
 	
-	private String makeAPathChoice(StaticStmt s, String stmtInfo, StaticMethod m) {
+	/*TODO plan for loops:
+	 * 1. When making own decision, check pathChoices, if there are choices of that IfStmt, find the most recent one and go the opposite direction
+	 * 2. When building ToDoPath for the newDirection, if the newDirection already happened before this, then do not build ToDoPath
+	 * */
+	private String makeAPathChoice(StaticStmt theS, String stmtInfo, StaticMethod m, PathSummary pS) {
 		String choice = "";
-		if (s instanceof IfStmt) {
-			choice = stmtInfo + "," + ((IfStmt) s).getJumpTargetLineNumber(m);
+		if (theS instanceof IfStmt) {
+			IfStmt s = (IfStmt) theS;
+			int jumpLine = s.getJumpTargetLineNumber(m);
+			int flowthrLine = s.getFlowThroughTargetLineNumber(m);
+			int jumpTo = jumpLine;
+			ArrayList<String> pathChoices = pS.getPathChoices();
+			for (String pC : pathChoices) {
+				System.out.println("[" + stmtInfo + "," + jumpLine + "] vs [" + pC + "]");
+				if (pC.equals(stmtInfo + "," + jumpLine)) {
+					System.out.println("[111111]");
+					jumpTo = flowthrLine;
+				}
+				else if (pC.equals(stmtInfo + "," + flowthrLine)) {
+					System.out.println("[22222222222]");
+					jumpTo = jumpLine;
+				}
+			}
+			System.out.println("[newDirection]" + jumpTo);
+			choice = stmtInfo + "," + jumpTo;
 		}
-		else if (s instanceof SwitchStmt) {
+		else if (theS instanceof SwitchStmt) {
 			choice = stmtInfo + ",FlowThrough";
 		}
 		return choice;
