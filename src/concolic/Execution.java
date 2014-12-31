@@ -278,7 +278,7 @@ public class Execution {
 	private void symbolicallyFinishingUp() throws Exception{
 		int counter = 1;
 		while (toDoPathList.size()>0) {
-			System.out.println("[Symbolic Execution No." + counter++ + "]");
+			System.out.println("[Symbolic Execution No." + counter++ + "]" + this.eventHandlerMethod.getSmaliSignature());
 			ToDoPath toDoPath = toDoPathList.get(toDoPathList.size()-1);
 			toDoPathList.remove(toDoPathList.size()-1);
 			//printOutToDoPath(toDoPath);
@@ -298,7 +298,6 @@ public class Execution {
 		StaticStmt s = allStmts.get(0);
 		while (true) {
 			//System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
-			System.out.println(s.getSourceLineNumber() + "  ");
 			pS.addExecutionLog(className + ":" + s.getSourceLineNumber());
 			if (s.endsMethod()) {
 				if (s instanceof ReturnStmt && !((ReturnStmt) s).returnsVoid())
@@ -322,13 +321,10 @@ public class Execution {
 						throw (new Exception("current PathStmt not synced with toDoPath.pastChoice. " + stmtInfo));
 					// haven't arrived target path stmt yet. So follow past choice, do not make new ToDoPath
 					choice = pastChoice;
-					System.out.println("aaaaaa");
-					
 				}
 				else if (toDoPath.getTargetPathStmtInfo().equals(stmtInfo)){
 					// this is the target path stmt
 					choice = stmtInfo + "," + toDoPath.getNewDirection();
-					System.out.println("bbbbbb");
 					toDoPath.setTargetPathStmtInfo("");
 				}
 				else {
@@ -495,17 +491,13 @@ public class Execution {
 			int jumpTo = jumpLine;
 			ArrayList<String> pathChoices = pS.getPathChoices();
 			for (String pC : pathChoices) {
-				System.out.println("[" + stmtInfo + "," + jumpLine + "] vs [" + pC + "]");
 				if (pC.equals(stmtInfo + "," + jumpLine)) {
-					System.out.println("[111111]");
 					jumpTo = flowthrLine;
 				}
 				else if (pC.equals(stmtInfo + "," + flowthrLine)) {
-					System.out.println("[22222222222]");
 					jumpTo = jumpLine;
 				}
 			}
-			System.out.println("[newDirection]" + jumpTo);
 			choice = stmtInfo + "," + jumpTo;
 		}
 		else if (theS instanceof SwitchStmt) {
