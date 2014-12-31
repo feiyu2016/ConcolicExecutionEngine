@@ -57,6 +57,8 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doFullSymbolic(){
+		if (this.eventHandlerMethod.getSmaliStmts().size() < 1)
+			return this.pathSummaries;
 		try {
 			ToDoPath toDoPath = new ToDoPath();
 			PathSummary initPS = new PathSummary();
@@ -71,6 +73,8 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doConcolic() {
+		if (this.eventHandlerMethod.getSmaliStmts().size() < 1)
+			return this.pathSummaries;
 		try {
 			
 			if (seqConsistsOfLaunchOnly()) {
@@ -145,6 +149,12 @@ public class Execution {
 					trimming = jdb.readLine();
 				String bpInfo = jdbNewLine.substring(jdbNewLine.indexOf("Breakpoint hit: "));
 				System.out.println("[J]" + bpInfo);
+				if (bpInfo.contains("Set breakpoint ")) {
+					jdbNewLine = jdb.readLine();
+					if (jdbNewLine == null)
+						throw (new Exception("Jdb might have crashed."));
+					continue;
+				}
 				String methodInfo = bpInfo.split(", ")[1];
 				String cN = methodInfo.substring(0, methodInfo.lastIndexOf("."));
 				String mN = methodInfo.substring(methodInfo.lastIndexOf(".")+1).replace("(", "").replace(")", "");
@@ -274,7 +284,7 @@ public class Execution {
 		String className = m.getDeclaringClass(staticApp).getJavaName();
 		StaticStmt s = allStmts.get(0);
 		while (true) {
-			//System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
+			System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
 			pS.addExecutionLog(className + ":" + s.getSourceLineNumber());
 			if (s.endsMethod()) {
 				if (s instanceof ReturnStmt && !((ReturnStmt) s).returnsVoid())
@@ -322,7 +332,7 @@ public class Execution {
 				InvokeStmt iS = (InvokeStmt) s;
 				StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 				StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
-				if (targetC != null && targetM != null && targetM.getDeclaringClass(staticApp) != null) {
+				if (targetC != null && targetM != null && targetM.getDeclaringClass(staticApp) != null && targetM.getSmaliStmts().size() > 0) {
 					PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 					PathSummary subPS = symbolicExecution(trimmedPS, targetM, toDoPath, false);
 					pS.mergeWithInvokedPS(subPS);
