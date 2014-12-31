@@ -25,6 +25,7 @@ public class Execution {
 	private StaticApp staticApp;
 	private Executer executer;
 	private StaticMethod eventHandlerMethod;
+	private int maxPSCount = -1;
 	private List<Event> seq = new ArrayList<Event>();
 	private Adb adb;
 	private Jdb jdb;
@@ -54,6 +55,7 @@ public class Execution {
 		this.eventHandlerMethod = staticApp.findMethod(methodSig);
 		if (eventHandlerMethod == null)
 			System.out.println("eventhandler m null");
+		this.maxPSCount = this.eventHandlerMethod.getMaxPSCount(this.staticApp);
 	}
 	
 	public void setSequence(List<Event> seq) {
@@ -278,7 +280,7 @@ public class Execution {
 	private void symbolicallyFinishingUp() throws Exception{
 		int counter = 1;
 		while (toDoPathList.size()>0) {
-			System.out.println("[Symbolic Execution No." + counter++ + "]" + this.eventHandlerMethod.getSmaliSignature());
+			System.out.println("[Symbolic Execution No." + counter++ + "(max " + this.maxPSCount + ")]" + this.eventHandlerMethod.getSmaliSignature());
 			ToDoPath toDoPath = toDoPathList.get(toDoPathList.size()-1);
 			toDoPathList.remove(toDoPathList.size()-1);
 			//printOutToDoPath(toDoPath);
