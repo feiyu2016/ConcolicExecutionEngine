@@ -15,6 +15,7 @@ public class ExecutionEngine {
 
 	private StaticApp testApp = null;
 	private Adb adb = new Adb();
+	public boolean blackListOn = true;
 	
 	public ExecutionEngine(StaticApp testApp) {
 		this.testApp = testApp;

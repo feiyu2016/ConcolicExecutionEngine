@@ -24,13 +24,14 @@ public class Execution {
 
 	private StaticApp staticApp;
 	private Executer executer;
-	private StaticMethod eventHandlerMethod;
+	private StaticMethod entryMethod;
 	private List<Event> seq = new ArrayList<Event>();
 	private Adb adb;
 	private Jdb jdb;
 	private ArrayList<PathSummary> pathSummaries = new ArrayList<PathSummary>();
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
+	public boolean blackListOn = true;
 	
 	public Execution(StaticApp staticApp) {
 		this.staticApp = staticApp;
@@ -51,8 +52,8 @@ public class Execution {
 	}
 	
 	public void setTargetMethod(String methodSig) {
-		this.eventHandlerMethod = staticApp.findMethod(methodSig);
-		if (eventHandlerMethod == null)
+		this.entryMethod = staticApp.findMethod(methodSig);
+		if (entryMethod == null)
 			System.out.println("eventhandler m null");
 	}
 	
@@ -61,13 +62,15 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doFullSymbolic(){
-		if (this.eventHandlerMethod.getSmaliStmts().size() < 1)
+		if (this.blackListOn && blacklistCheck(this.entryMethod))
+			return this.pathSummaries;
+		if (this.entryMethod.getSmaliStmts().size() < 1)
 			return this.pathSummaries;
 		try {
 			ToDoPath toDoPath = new ToDoPath();
 			PathSummary initPS = new PathSummary();
-			initPS.setSymbolicStates(initSymbolicStates(eventHandlerMethod));
-			PathSummary newPS = symbolicExecution(initPS, eventHandlerMethod, toDoPath, true);
+			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
+			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
 			symbolicallyFinishingUp();
 			System.out.println("\nTotal number of PS: " + pathSummaries.size());
@@ -77,7 +80,9 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doConcolic() {
-		if (this.eventHandlerMethod.getSmaliStmts().size() < 1)
+		if (this.blackListOn && blacklistCheck(this.entryMethod))
+			return this.pathSummaries;
+		if (this.entryMethod.getSmaliStmts().size() < 1)
 			return this.pathSummaries;
 		try {
 			
@@ -92,9 +97,9 @@ public class Execution {
 			Thread.sleep(100);
 
 			PathSummary pS_0 = new PathSummary();
-			pS_0.setSymbolicStates(initSymbolicStates(eventHandlerMethod));
-			pS_0.setMethodSignature(eventHandlerMethod.getSmaliSignature());
-			pS_0 = concreteExecution(pS_0, eventHandlerMethod, true);
+			pS_0.setSymbolicStates(initSymbolicStates(entryMethod));
+			pS_0.setMethodSignature(entryMethod.getSmaliSignature());
+			pS_0 = concreteExecution(pS_0, entryMethod, true);
 			pathSummaries.add(pS_0);
 			
 			symbolicallyFinishingUp();
@@ -134,8 +139,8 @@ public class Execution {
 		
 		System.out.println("Done.");
 		
-		for (int i : eventHandlerMethod.getSourceLineNumbers()) {
-			jdb.setBreakPointAtLine(eventHandlerMethod.getDeclaringClass(staticApp).getJavaName(), i);
+		for (int i : entryMethod.getSourceLineNumbers()) {
+			jdb.setBreakPointAtLine(entryMethod.getDeclaringClass(staticApp).getJavaName(), i);
 		}
 	}
 	
@@ -246,7 +251,7 @@ public class Execution {
 					InvokeStmt iS = (InvokeStmt) s;
 					StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 					StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
-					if (targetC != null && targetM != null) {
+					if (targetC != null && targetM != null && !(this.blackListOn && blacklistCheck(targetM))) {
 						for (int i : targetM.getSourceLineNumbers())
 							jdb.setBreakPointAtLine(targetC.getJavaName(), i);
 						jdb.cont();
@@ -278,14 +283,14 @@ public class Execution {
 	private void symbolicallyFinishingUp() throws Exception{
 		int counter = 1;
 		while (toDoPathList.size()>0) {
-			System.out.println("[Symbolic Execution No." + counter++ + "]" + this.eventHandlerMethod.getSmaliSignature());
+			System.out.println("[Symbolic Execution No." + counter++ + "]" + this.entryMethod.getSmaliSignature());
 			ToDoPath toDoPath = toDoPathList.get(toDoPathList.size()-1);
 			toDoPathList.remove(toDoPathList.size()-1);
 			//printOutToDoPath(toDoPath);
 			PathSummary initPS = new PathSummary();
-			initPS.setSymbolicStates(initSymbolicStates(eventHandlerMethod));
-			initPS.setMethodSignature(eventHandlerMethod.getSmaliSignature());
-			PathSummary newPS = symbolicExecution(initPS, eventHandlerMethod, toDoPath, true);
+			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
+			initPS.setMethodSignature(entryMethod.getSmaliSignature());
+			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
 		}
 	}
@@ -350,7 +355,10 @@ public class Execution {
 				InvokeStmt iS = (InvokeStmt) s;
 				StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 				StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
-				if (targetC != null && targetM != null && targetM.getDeclaringClass(staticApp) != null && targetM.getSmaliStmts().size() > 0) {
+				if (targetC != null && targetM != null &&
+						targetM.getDeclaringClass(staticApp) != null &&
+						targetM.getSmaliStmts().size() > 0 &&
+						!(this.blackListOn && blacklistCheck(targetM))) {
 					PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 					PathSummary subPS = symbolicExecution(trimmedPS, targetM, toDoPath, false);
 					pS.mergeWithInvokedPS(subPS);
@@ -384,6 +392,12 @@ public class Execution {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	private boolean blacklistCheck(StaticMethod m) {
+		StaticClass c = m.getDeclaringClass(staticApp);
+		return Blacklist.classInBlackList(c.getDexName()) || Blacklist.methodInBlackList(m.getSmaliSignature());
+	}
 	
 	private void applyFinalEvent() {
 		executer.applyEvent(seq.get(seq.size()-1));
@@ -593,8 +607,8 @@ public class Execution {
 	
 	private ArrayList<Operation> initSymbolicStates(StaticMethod targetM) {
 		ArrayList<Operation> symbolicStates = new ArrayList<Operation>();
-		int paramCount = eventHandlerMethod.getParameterTypes().size();
-		if (!eventHandlerMethod.isStatic())
+		int paramCount = entryMethod.getParameterTypes().size();
+		if (!entryMethod.isStatic())
 			paramCount++;
 		for (int i = 0; i < paramCount; i++) {
 			Operation o = new Operation();
