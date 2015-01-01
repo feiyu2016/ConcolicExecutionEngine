@@ -395,8 +395,11 @@ public class Execution {
 	
 	
 	private boolean blacklistCheck(StaticMethod m) {
+		Blacklist bl = new Blacklist();
 		StaticClass c = m.getDeclaringClass(staticApp);
-		return Blacklist.classInBlackList(c.getDexName()) || Blacklist.methodInBlackList(m.getSmaliSignature());
+		if (m == null || c == null)
+			return false;
+		return (bl.classes.contains(c.getDexName()) || bl.methods.contains(m.getSmaliSignature()));
 	}
 	
 	private void applyFinalEvent() {

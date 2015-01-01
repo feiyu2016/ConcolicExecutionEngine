@@ -16,22 +16,25 @@ public class Blacklist {
 	 * concolic execution. Maybe in the future there will be a way to deal
 	 * with these huge methods efficiently.
 	 * */
-	public static ArrayList<String> classes = (ArrayList<String>) Arrays.asList(
+	public ArrayList<String> classes = new ArrayList<String>(Arrays.asList(
 			"Landroid/support/v4/app/FragmentManagerImpl;"
 			
-	);
+	));
 	
-	
-	public static ArrayList<String> methods = (ArrayList<String>) Arrays.asList(
-			""
-	);
 
 	
-	public static boolean classInBlackList(String className) {
+	
+	public ArrayList<String> methods = new ArrayList<String>(Arrays.asList(
+			""
+	));
+
+	
+	public boolean classInBlackList(String className) {
+
 		return classes.contains(className);
 	}
 	
-	public static boolean methodInBlackList(String methodSig) {
+	public boolean methodInBlackList(String methodSig) {
 		return methods.contains(methodSig);
 	}
 
