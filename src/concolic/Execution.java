@@ -18,6 +18,7 @@ import tools.Adb;
 import tools.Jdb;
 import zhen.version1.component.Event;
 import zhen.version1.component.WindowInformation;
+import zhen.version1.framework.Common;
 import zhen.version1.framework.Executer;
 
 public class Execution {
@@ -32,6 +33,7 @@ public class Execution {
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
 	public boolean blackListOn = false;
+	public boolean useAdb = true;
 	
 	public Execution(StaticApp staticApp) {
 		this.staticApp = staticApp;
@@ -132,8 +134,15 @@ public class Execution {
 		for (int i = 0, len = seq.size()-1; i < len; i++) {
 			Event e = seq.get(i);
 			if (e.getEventType() != Event.iLAUNCH) {
+				if (!this.useAdb) {
 				this.executer.applyEvent(e);
 				WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
+				}
+				else {
+					String x = e.getValue(Common.event_att_click_x).toString();
+					String y = e.getValue(Common.event_att_click_y).toString();
+					adb.click(x + " " + y);
+				}
 			}
 		}
 		
@@ -406,7 +415,15 @@ public class Execution {
 	}
 	
 	private void applyFinalEvent() {
-		executer.applyEvent(seq.get(seq.size()-1));
+		if (!this.useAdb)
+			executer.applyEvent(seq.get(seq.size()-1));
+		else {
+			Event lastEvent = seq.get(seq.size()-1);
+			String x = lastEvent.getValue(Common.event_att_click_x).toString();
+			String y = lastEvent.getValue(Common.event_att_click_y).toString();
+			adb.click(x + " " + y);
+		}
+			
 	}
 
 	private boolean seqConsistsOfLaunchOnly() {

@@ -18,6 +18,7 @@ public class ExecutionEngine {
 	private StaticApp testApp = null;
 	private Adb adb = new Adb();
 	public boolean blackListOn = true;
+	public boolean useAdb = true;
 	
 	public ExecutionEngine(StaticApp testApp) {
 		this.testApp = testApp;
@@ -31,7 +32,9 @@ public class ExecutionEngine {
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(forceAllSteps);
 		UIModelGraph model = builder.getUIModel();
-		Execution ex = new Execution(testApp, builder.getExecutor());
+		//Execution ex = new Execution(testApp, builder.getExecutor());
+		Execution ex = new Execution(testApp);
+		ex.useAdb = this.useAdb;
 		ex.blackListOn = this.blackListOn;
 		
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
