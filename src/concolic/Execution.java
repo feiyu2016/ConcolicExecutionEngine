@@ -181,8 +181,10 @@ public class Execution {
 				StaticClass c = staticApp.findClassByJavaName(cN);
 				if (c == null)
 					throw (new Exception("Can't find StaticClass object of class " + cN + ". In " + bpInfo));
-				if (!m.getName().equals(mN))
-					throw (new Exception("Mismatch between current StaticMethod and new Breakpoint method. In " + bpInfo));
+				if (!m.getName().equals(mN)) {
+					throw (new Exception("Mismatch between current StaticMethod and new Breakpoint method. In " + bpInfo
+							 + "\ncurrent StaticMethod name: " + m.getName()));
+				}
 				StaticStmt s = m.getStmtByLineNumber(newHitLine);
 				if (s == null)
 					throw (new Exception("Can't find StaticStmt object of " + cN + ":" + newHitLine));
