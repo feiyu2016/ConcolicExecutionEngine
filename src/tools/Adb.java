@@ -11,12 +11,14 @@ public class Adb {
 	public void click(int x, int y) {
 		try {
 			Runtime.getRuntime().exec(Paths.adbPath + " shell input tap " + x + " " + y).waitFor();
+			Thread.sleep(300);
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
 	public void click(String xy) {
 		try {
 			Runtime.getRuntime().exec(Paths.adbPath + " shell input tap " + xy).waitFor();
+			Thread.sleep(300);
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
