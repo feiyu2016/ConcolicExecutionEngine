@@ -18,7 +18,8 @@ public class Blacklist {
 	 * */
 	public ArrayList<String> classes = new ArrayList<String>(Arrays.asList(
 			"Landroid/support/v4/*",
-			"Landroid/support/v7/*"
+			"Landroid/support/v7/*",
+			"Landroid/support/annotation/*"
 	));
 	
 
