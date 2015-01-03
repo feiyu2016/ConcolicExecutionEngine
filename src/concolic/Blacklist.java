@@ -17,8 +17,8 @@ public class Blacklist {
 	 * with these huge methods efficiently.
 	 * */
 	public ArrayList<String> classes = new ArrayList<String>(Arrays.asList(
-			"Landroid/support/v4/app/FragmentManagerImpl;"
-			
+			"Landroid/support/v4/*",
+			"Landroid/support/v7/*"
 	));
 	
 
@@ -30,8 +30,17 @@ public class Blacklist {
 
 	
 	public boolean classInBlackList(String className) {
-
-		return classes.contains(className);
+		for (String c : classes) {
+			if (c.endsWith("*")) {
+				if (className.startsWith(c.substring(0, c.lastIndexOf("*"))))
+					return true;
+			}
+			else if (c.endsWith(";")) {
+				if (className.equals(c))
+					return true;
+			}
+		}
+		return false;
 	}
 	
 	public boolean methodInBlackList(String methodSig) {

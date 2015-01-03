@@ -322,8 +322,11 @@ public class Execution {
 				ArrayList<Condition> pathConditions = new ArrayList<Condition>();
 				ArrayList<String> remainingDirections = new ArrayList<String>();
 				if (!pastChoice.equals("")) {
-					if (!pastChoice.startsWith(stmtInfo + ","))
+					if (!pastChoice.startsWith(stmtInfo + ",")) {
+						System.out.println("Expecting: " + stmtInfo + ",");
+						System.out.println("Got this:  " + pastChoice);
 						throw (new Exception("current PathStmt not synced with toDoPath.pastChoice. " + stmtInfo));
+					}
 					// haven't arrived target path stmt yet. So follow past choice, do not make new ToDoPath
 					choice = pastChoice;
 				}
@@ -399,7 +402,7 @@ public class Execution {
 		StaticClass c = m.getDeclaringClass(staticApp);
 		if (m == null || c == null)
 			return false;
-		return (bl.classes.contains(c.getDexName()) || bl.methods.contains(m.getSmaliSignature()));
+		return (bl.classInBlackList(c.getDexName()) || bl.methodInBlackList(m.getSmaliSignature()));
 	}
 	
 	private void applyFinalEvent() {
