@@ -37,6 +37,8 @@ public class ExecutionEngine {
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			
 			String methodSig = entry.getKey();
+			if (!methodSig.startsWith("Lthe/app/Irwin$3;->onClick"))
+				continue;
 			System.out.println("\n[Method]" + methodSig);
 			System.out.println("[SeqFromMap]" + entry.getValue());
 			
