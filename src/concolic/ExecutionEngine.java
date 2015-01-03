@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import staticFamily.StaticApp;
+import staticFamily.StaticClass;
+import staticFamily.StaticMethod;
 import tools.Adb;
 import zhen.version1.UIModelGenerator;
 import zhen.version1.component.Event;
@@ -30,6 +32,7 @@ public class ExecutionEngine {
 		builder.buildOrRead(forceAllSteps);
 		UIModelGraph model = builder.getUIModel();
 		Execution ex = new Execution(testApp, builder.getExecutor());
+		ex.blackListOn = this.blackListOn;
 		
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			
@@ -46,12 +49,29 @@ public class ExecutionEngine {
 			ex.setSequence(eventSeq);
 			ArrayList<PathSummary> psList = ex.doConcolic();
 			
-			this.testApp.findMethod(methodSig).setPathSummaries(psList);
+			testApp.findMethod(methodSig).setPathSummaries(psList);
 		}
 		
-		return this.testApp;
+		return testApp;
 		
 	}
+	
+	public StaticApp doFullSymbolic() {
+		Execution ex = new Execution(testApp);
+		ex.blackListOn = this.blackListOn;
+		for (StaticClass c : testApp.getClasses()) {
+			for (StaticMethod m : c.getMethods()) {
+				ex.init();
+				ex.setTargetMethod(m.getSmaliSignature());
+				ArrayList<PathSummary> psList = ex.doFullSymbolic();
+				testApp.findMethod(m.getSmaliSignature()).setPathSummaries(psList);
+			}
+		}
+		return testApp;
+	}
+	
+	
+	
 	
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();

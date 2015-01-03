@@ -31,7 +31,7 @@ public class Execution {
 	private ArrayList<PathSummary> pathSummaries = new ArrayList<PathSummary>();
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
-	public boolean blackListOn = true;
+	public boolean blackListOn = false;
 	
 	public Execution(StaticApp staticApp) {
 		this.staticApp = staticApp;
@@ -73,7 +73,7 @@ public class Execution {
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
 			symbolicallyFinishingUp();
-			System.out.println("\nTotal number of PS: " + pathSummaries.size());
+			//System.out.println("\nTotal number of PS: " + pathSummaries.size());
 		}	catch (Exception e) {e.printStackTrace();}
 		return this.pathSummaries;
 		
