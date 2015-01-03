@@ -260,9 +260,9 @@ public class Execution {
 					InvokeStmt iS = (InvokeStmt) s;
 					StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 					StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
-					if (this.blackListOn && blacklistCheck(targetM))
-						System.out.println("[Skipping blacklist]" + iS.getTargetSig());
 					if (targetC != null && targetM != null && !(this.blackListOn && blacklistCheck(targetM))) {
+						if (this.blackListOn && !blacklistCheck(targetM))
+							System.out.println("[Not Skipping blacklist]" + iS.getTargetSig());
 						for (int i : targetM.getSourceLineNumbers())
 							jdb.setBreakPointAtLine(targetC.getJavaName(), i);
 						jdb.cont();
