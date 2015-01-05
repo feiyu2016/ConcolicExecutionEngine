@@ -51,7 +51,6 @@ public class Jdb {
 			result = "TIMEOUT";
 		}
 		executor.shutdown();
-
 		return result;
 	}
 	
@@ -65,6 +64,9 @@ public class Jdb {
 				out.write(("stop at " + className + ":" + line + "\n").getBytes());
 				out.flush();
 				breakpointsLog.add(className + ":" + line);
+			}
+			else {
+				System.out.println("breakpoints already set, no need to set again.");
 			}
 		}	catch (Exception e) { e.printStackTrace(); }
 	}

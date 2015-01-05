@@ -82,21 +82,24 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doConcolic() {
-		if (this.blackListOn && blacklistCheck(this.entryMethod))
+		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
+			System.out.println("[Current Method is on Blacklist, skipped]");
 			return this.pathSummaries;
-		if (this.entryMethod.getSmaliStmts().size() < 1)
+		}
+		if (this.entryMethod.getSmaliStmts().size() < 1) {
+			System.out.println("[Empty Method]");
 			return this.pathSummaries;
+		}
 		try {
 			
 			if (seqConsistsOfLaunchOnly()) {
+				System.out.println("[Event Sequence is launch only, doing full symbolic]");
 				return doFullSymbolic();
 			}
-				
+			
 			preparation();
 
 			applyFinalEvent();
-			
-			Thread.sleep(100);
 
 			PathSummary pS_0 = new PathSummary();
 			pS_0.setSymbolicStates(initSymbolicStates(entryMethod));
@@ -108,7 +111,7 @@ public class Execution {
 			
 			jdb.exit();
 			
-			System.out.println("\nTotal number of PS: " + pathSummaries.size());
+			System.out.println("\nGenerated " + pathSummaries.size() + " Path Summaries for " + this.entryMethod.getSmaliSignature());
 
 		}	catch (Exception e) {e.printStackTrace();}
 		
@@ -123,6 +126,8 @@ public class Execution {
 		adb.uninstallApp(staticApp.getPackageName());
 		adb.installApp(staticApp.getSmaliAppPath());
 		System.out.println("Done.");
+		adb.unlockScreen();
+		adb.pressHomeButton();
 		adb.startApp(staticApp.getPackageName(), staticApp.getMainActivity().getJavaName());
 		
 		System.out.print("\nInitiating jdb...  ");

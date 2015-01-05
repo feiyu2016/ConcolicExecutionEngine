@@ -48,6 +48,14 @@ public class Adb {
 	public void unlockScreen() {
 		try {
 			Runtime.getRuntime().exec(Paths.adbPath + " shell input keyevent 82").waitFor();
+			Thread.sleep(300);
+		}	catch (Exception e) {e.printStackTrace();}
+	}
+	
+	public void pressHomeButton() {
+		try {
+			Runtime.getRuntime().exec(Paths.adbPath + " shell input keyevent 3").waitFor();
+			Thread.sleep(300);
 		}	catch (Exception e) {e.printStackTrace();}
 	}
 	

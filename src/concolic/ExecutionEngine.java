@@ -39,17 +39,17 @@ public class ExecutionEngine {
 		
 		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 			
+			
 			String methodSig = entry.getKey();
-			System.out.println("\n[Method]" + methodSig);
-			System.out.println("[SeqFromMap]" + entry.getValue());
+			System.out.println("\n[Method]\t\t" + methodSig);		
 			
 			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
-			System.out.println("[EventSequence]" + eventSeq);
+			System.out.println("[EventSequence]\t" + eventSeq);
 			
-			System.out.println("===========concolic starts");
 			ex.init();
 			ex.setTargetMethod(methodSig);
 			ex.setSequence(eventSeq);
+			
 			ArrayList<PathSummary> psList = ex.doConcolic();
 			
 			testApp.findMethod(methodSig).setPathSummaries(psList);
