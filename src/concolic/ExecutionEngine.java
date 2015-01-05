@@ -41,10 +41,10 @@ public class ExecutionEngine {
 			
 			
 			String methodSig = entry.getKey();
-			System.out.println("\n[Method]\t\t" + methodSig);		
+			//System.out.println("\n[Method]\t\t" + methodSig);		
 			
 			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
-			System.out.println("[EventSequence]\t" + eventSeq);
+			//System.out.println("[EventSequence]\t" + eventSeq);
 			
 			ex.init();
 			ex.setTargetMethod(methodSig);

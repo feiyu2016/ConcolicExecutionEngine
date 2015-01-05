@@ -83,17 +83,19 @@ public class Execution {
 	
 	public ArrayList<PathSummary> doConcolic() {
 		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
-			System.out.println("[Current Method is on Blacklist, skipped]");
+			//System.out.println("[Current Method is on Blacklist, skipped]");
 			return this.pathSummaries;
 		}
+		System.out.println("\n[Method]\t\t" + this.entryMethod.getSmaliSignature());
+		System.out.println("[EventSequence]\t" + this.seq);
 		if (this.entryMethod.getSmaliStmts().size() < 1) {
-			System.out.println("[Empty Method]");
+			//System.out.println("[Empty Method]");
 			return this.pathSummaries;
 		}
 		try {
 			
 			if (seqConsistsOfLaunchOnly()) {
-				System.out.println("[Event Sequence is launch only, doing full symbolic]");
+				//System.out.println("[Event Sequence is launch only, doing full symbolic]");
 				return doFullSymbolic();
 			}
 			
