@@ -72,6 +72,7 @@ public class Execution {
 			ToDoPath toDoPath = new ToDoPath();
 			PathSummary initPS = new PathSummary();
 			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
+			initPS.setMethodSignature(this.entryMethod.getSmaliSignature());
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
 			symbolicallyFinishingUp();
