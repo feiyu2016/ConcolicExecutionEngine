@@ -28,6 +28,8 @@ public class ExecutionEngine {
 		
 		adb.uninstallApp(testApp.getPackageName());
 		adb.installApp(testApp.getSootAppPath());
+		adb.unlockScreen();
+		adb.pressHomeButton();
 		adb.startApp(testApp.getPackageName(), testApp.getMainActivity().getJavaName());
 		UIModelGenerator builder = new UIModelGenerator(testApp);
 		builder.buildOrRead(forceAllSteps);
