@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import concolic.temp.Expression;
 import smali.stmt.GotoStmt;
 import smali.stmt.IfStmt;
 import smali.stmt.InvokeStmt;
@@ -205,12 +206,12 @@ public class Execution {
 					if (lastPathStmt instanceof IfStmt) {
 						IfStmt ifS = (IfStmt) lastPathStmt;
 						int remainingLine = -1;
-						Condition cond = ifS.getJumpCondition();
+						Expression cond = ifS.getJumpCondition();
 						if (newHitLine == ifS.getJumpTargetLineNumber(m))
 							remainingLine = ifS.getFlowThroughTargetLineNumber(m);
 						else if (newHitLine == ifS.getFlowThroughTargetLineNumber(m)) {
 							remainingLine = ifS.getJumpTargetLineNumber(m);
-							cond.reverseCondition();
+							cond = this.getReverseCondition(cond);
 						}
 						else throw (new Exception("Unexpected Line Number Following IfStmt" + bpInfo));
 						boolean shouldAdd = true;
@@ -233,7 +234,7 @@ public class Execution {
 							if (anyCase != newHitLine)
 								remainingCases.add(anyCase+"");
 						if (newHitLine == swS.getFlowThroughLineNumber(m)) {
-							for (Condition cond : swS.getFlowThroughConditions())
+							for (Expression cond : swS.getFlowThroughConditions())
 								pS.updatePathCondition(cond);
 						}
 						else {
@@ -256,11 +257,11 @@ public class Execution {
 				}
 				// 2-3. Current StaticStmt generates New Symbol
 				else if (s.generatesSymbol()) {
-					pS.updateSymbolicStates(s.getOperation(), true);
+					pS.updateSymbolicStates(s.getExpression());
 				}
 				// 2-4. Current StaticStmt contains Operation
-				else if (s.hasOperation()) {
-					pS.updateSymbolicStates(s.getOperation(), false);
+				else if (s.hasExpression()) {
+					pS.updateSymbolicStates(s.getExpression());
 				}
 				// 2-5. Current StaticStmt is IfStmt or SwitchStmt, prepare for PathCondition update at next hit
 				else if (s.updatesPathCondition()) {
@@ -283,9 +284,8 @@ public class Execution {
 						pS.mergeWithInvokedPS(subPS);
 					}
 					else if (iS.resultsMoved()) {
-						Operation symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS.getSymbolicStates());
-						if (symbolOFromJavaAPI != null)
-							pS.addSymbolicState(symbolOFromJavaAPI);
+						Expression symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS);
+						pS.addSymbolicState(symbolOFromJavaAPI);
 					}
 				}
 				// 3. Finished Processing StaticStmt, let jdb continue
@@ -333,16 +333,18 @@ public class Execution {
 				break;
 			}
 			else if (s.generatesSymbol()) {
-				pS.updateSymbolicStates(s.getOperation(), true);
+				//System.out.println("[feeding newEx]" + s.getExpression().toYicesStatement());
+				pS.updateSymbolicStates(s.getExpression());
 			}
-			else if (s.hasOperation()) {
-				pS.updateSymbolicStates(s.getOperation(), false);
+			else if (s.hasExpression()) {
+				//System.out.println("[feeding newEx]" + s.getExpression().toYicesStatement());
+				pS.updateSymbolicStates(s.getExpression());
 			}
 			else if (s.updatesPathCondition()) {
 				String stmtInfo = className + ":" + s.getSourceLineNumber();
 				String pastChoice = toDoPath.getAPastChoice();
 				String choice = "";
-				ArrayList<Condition> pathConditions = new ArrayList<Condition>();
+				ArrayList<Expression> pathConditions = new ArrayList<Expression>();
 				ArrayList<String> remainingDirections = new ArrayList<String>();
 				if (!pastChoice.equals("")) {
 					if (!pastChoice.startsWith(stmtInfo + ",")) {
@@ -372,7 +374,7 @@ public class Execution {
 				}
 				pS.addPathChoice(choice);
 				pathConditions = retrievePathConditions(s, choice, m);
-				for (Condition cond : pathConditions)
+				for (Expression cond : pathConditions)
 					pS.updatePathCondition(cond);
 				s = m.getStmtByLineNumber(readNextLineNumber(s, choice, m));
 				continue;
@@ -390,7 +392,7 @@ public class Execution {
 					pS.mergeWithInvokedPS(subPS);
 				}
 				else if (iS.resultsMoved()) {
-					Operation symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS.getSymbolicStates());
+					Expression symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS);
 					if (symbolOFromJavaAPI != null)
 						pS.addSymbolicState(symbolOFromJavaAPI);
 				}
@@ -487,26 +489,26 @@ public class Execution {
 		return remainingDirections;
 	}
 
-	private ArrayList<Condition> retrievePathConditions(StaticStmt s,	String choice, StaticMethod m) {
-		ArrayList<Condition> result = new ArrayList<Condition>();
+	private ArrayList<Expression> retrievePathConditions(StaticStmt s, String choice, StaticMethod m) {
+		ArrayList<Expression> result = new ArrayList<Expression>();
 		if (s instanceof IfStmt) {
 			IfStmt ifS = (IfStmt) s;
 			int chosenLine = Integer.parseInt(choice.split(",")[1]);
-			Condition cond = ifS.getJumpCondition();
+			Expression cond = ifS.getJumpCondition();
 			if (chosenLine != ifS.getJumpTargetLineNumber(m))
-				cond.reverseCondition();
+				cond = getReverseCondition(cond);
 			result.add(cond);
 		}
 		else if (s instanceof SwitchStmt) {
 			SwitchStmt sws = (SwitchStmt) s;
 			String chosenValue = choice.split(",")[1];
 			if (chosenValue.equals("FlowThrough"))
-				for (Condition cond : sws.getFlowThroughConditions())
+				for (Expression cond : sws.getFlowThroughConditions())
 					result.add(cond);
 			else if (sws.getSwitchMap(m).containsKey(Integer.parseInt(chosenValue)))
 				result.add(sws.getSwitchCondition(Integer.parseInt(chosenValue)));
 			else
-				for (Condition cond : sws.getFlowThroughConditions())
+				for (Expression cond : sws.getFlowThroughConditions())
 					result.add(cond);
 		}
 		return result;
@@ -557,31 +559,23 @@ public class Execution {
 		return choice;
 	}
 
-	private Operation generateJavaAPIReturnOperation(InvokeStmt iS, ArrayList<Operation> symbolicStates) {
-		Operation resultO = new Operation();
-		resultO.setLeft("$return");
-		resultO.setNoOp(true);
+	private Expression generateJavaAPIReturnOperation(InvokeStmt iS, PathSummary pS) {
 		
+		Expression left = new Expression("$return");
+		Expression right = new Expression("$api");
+		right.add(new Expression(iS.getTargetSig()));
 		String rawParams = iS.getParams();
-
 		ArrayList<String> oldParams = new ArrayList<String>();
-		ArrayList<String> newParams = new ArrayList<String>();
 		if (!rawParams.contains(", "))	oldParams.add(rawParams);
 		else	oldParams = new ArrayList<String>(Arrays.asList(rawParams.split(", ")));
-		for (String oldp : oldParams)
-			for (Operation o : symbolicStates)
-				if (o.getLeft().equals(oldp)) {
-					newParams.add(o.getRight());
-					break;
-				}
-		String newParam = "{";
-		if (newParams.size()>0)
-			newParam += newParams.get(0);
-		for (int i = 1; i < newParams.size(); i++)
-			newParam += ", " + newParams.get(i);
-		newParam += "}";
-		resultO.setRightA("#invoke>>" + iS.getTargetSig() + ">>" + newParam);
-		return resultO;
+		for (String oldp : oldParams) {
+			Expression newP = pS.findExistingExpression(new Expression(oldp));
+			right.add(newP);
+		}
+		Expression result = new Expression("=");
+		result.add(left);
+		result.add(right);
+		return result;
 	}
 	
 	private PathSummary trimPSForInvoke(PathSummary pS, String unparsedParams) {
@@ -591,18 +585,19 @@ public class Execution {
 			params.add(unparsedParams);
 		else params = new ArrayList<String>(Arrays.asList(unparsedParams.split(", ")));
 		int paramIndex = 0;
-		ArrayList<Operation> trimmedSymbolicStates = new ArrayList<Operation>();
-		for (Operation o : pS.getSymbolicStates()) {
+		ArrayList<Expression> trimmedSymbolicStates = new ArrayList<Expression>();
+		for (Expression ex : pS.getSymbolicStates()) {
+			Expression left = (Expression) ex.getChildAt(0);
 			// 1. left.endwith $Fstatic
 			// 2. left = parameter
-			if (params.contains(o.getLeft())) {
-				Operation newO = o.clone();
-				newO.setLeft("p" + paramIndex++);
-				params.remove(o.getLeft());
-				trimmedSymbolicStates.add(newO);
-			}
-			else if (o.getLeft().contains("$Fstatic")) {
-				trimmedSymbolicStates.add(o);
+			if (left.getUserObject().toString().equals("$Fstatic"))
+				trimmedSymbolicStates.add(ex.clone());
+			else if (params.contains(left.getUserObject().toString())) {
+				Expression toAdd = ex.clone();
+				toAdd.remove(0);
+				toAdd.insert(new Expression("p" + paramIndex++), 0);
+				params.remove(left.getUserObject().toString());
+				trimmedSymbolicStates.add(toAdd);
 			}
 		}
 		trimmedPS.setSymbolicStates(trimmedSymbolicStates);
@@ -622,11 +617,11 @@ public class Execution {
 		for (String s : pS.getExecutionLog())
 			System.out.println("  " + s);
 		System.out.println("\n Symbolic States: ");
-		for (Operation o : pS.getSymbolicStates())
-			System.out.println("  " + o.toString());
+		for (Expression o : pS.getSymbolicStates())
+			System.out.println("  " + o.toYicesStatement());
 		System.out.println("\n PathCondition: ");
-		for (Condition cond : pS.getPathCondition())
-			System.out.println("  " + cond.toString());
+		for (Expression cond : pS.getPathCondition())
+			System.out.println("  " + cond.toYicesStatement());
 		System.out.println("\n PathChoices: ");
 		for (String pC : pS.getPathChoices())
 			System.out.println("  " + pC);
@@ -642,17 +637,16 @@ public class Execution {
 	}
 	
 	
-	private ArrayList<Operation> initSymbolicStates(StaticMethod targetM) {
-		ArrayList<Operation> symbolicStates = new ArrayList<Operation>();
+	private ArrayList<Expression> initSymbolicStates(StaticMethod targetM) {
+		ArrayList<Expression> symbolicStates = new ArrayList<Expression>();
 		int paramCount = entryMethod.getParameterTypes().size();
 		if (!entryMethod.isStatic())
 			paramCount++;
 		for (int i = 0; i < paramCount; i++) {
-			Operation o = new Operation();
-			o.setLeft("p" + i);
-			o.setNoOp(true);
-			o.setRightA("$parameter" + i);
-			symbolicStates.add(o);
+			Expression ex = new Expression("=");
+			ex.add(new Expression("p" + i));
+			ex.add(new Expression("$parameter" + i));
+			symbolicStates.add(ex);
 		}
 		return symbolicStates;
 	}
@@ -684,6 +678,22 @@ public class Execution {
 				return right;
 		}
 		return "";
+	}
+	
+	private Expression getReverseCondition(Expression ex) {
+		String op = ex.getUserObject().toString();
+		if (op.equals("=="))		op = "!=";
+		else if (op.equals("!="))	op = "==";
+		else if (op.equals("<"))	op = ">=";
+		else if (op.equals("<="))	op = ">";
+		else if (op.equals(">"))	op = "<=";
+		else if (op.equals(">="))	op = "<";
+		Expression result = new Expression(op);
+		for (int i = 0; i < ex.getChildCount(); i++) {
+			Expression child = (Expression) ex.getChildAt(i);
+			result.add(child.clone());
+		}
+		return result;
 	}
 
 }
