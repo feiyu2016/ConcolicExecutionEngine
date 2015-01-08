@@ -644,7 +644,10 @@ public class Execution {
 		for (int i = 0; i < paramCount; i++) {
 			Expression ex = new Expression("=");
 			ex.add(new Expression("p" + i));
-			ex.add(new Expression("$parameter" + i));
+			if (!entryMethod.isStatic() && i == 0)
+				ex.add(new Expression("$this"));
+			else
+				ex.add(new Expression("$parameter" + i));
 			symbolicStates.add(ex);
 		}
 		return symbolicStates;
