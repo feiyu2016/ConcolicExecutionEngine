@@ -64,10 +64,15 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doFullSymbolic(){
-		if (this.blackListOn && blacklistCheck(this.entryMethod))
+		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
+			System.out.println("Skipping blacklisted method " + this.entryMethod.getSmaliSignature());
 			return this.pathSummaries;
-		if (this.entryMethod.getSmaliStmts().size() < 1)
+		}
+		if (this.entryMethod.getSmaliStmts().size() < 1) {
+			System.out.println("Empty method " + this.entryMethod.getSmaliSignature());
 			return this.pathSummaries;
+		}
+		System.out.println("generating symbolic PathSummary for " + this.entryMethod.getSmaliSignature() + " ...");
 		try {
 			ToDoPath toDoPath = new ToDoPath();
 			PathSummary initPS = new PathSummary();
