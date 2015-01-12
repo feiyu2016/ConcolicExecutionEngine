@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import analysis.Expression;
 import smali.stmt.GotoStmt;
 import smali.stmt.IfStmt;
 import smali.stmt.InvokeStmt;
