@@ -24,15 +24,13 @@ public class ExecutionEngine {
 		this.testApp = testApp;
 	}
 	
-	public StaticApp buildPathSummaries(boolean forceAllSteps) {
+	public StaticApp buildPathSummaries(boolean forceAllStep, UIModelGenerator builder) {
 		
 		adb.uninstallApp(testApp.getPackageName());
 		adb.installApp(testApp.getSootAppPath());
 		adb.unlockScreen();
 		adb.pressHomeButton();
 		adb.startApp(testApp.getPackageName(), testApp.getMainActivity().getJavaName());
-		UIModelGenerator builder = new UIModelGenerator(testApp);
-		builder.buildOrRead(forceAllSteps);
 		UIModelGraph model = builder.getUIModel();
 		//Execution ex = new Execution(testApp, builder.getExecutor());
 		Execution ex = new Execution(testApp);
