@@ -20,6 +20,7 @@ public class PathSummary implements Serializable{
 	
 	private List<Event> eventSequence = new ArrayList<Event>();
 	
+	
 	public ArrayList<String> getExecutionLog() {
 		return executionLog;
 	}

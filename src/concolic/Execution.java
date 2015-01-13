@@ -279,6 +279,7 @@ public class Execution {
 				}
 				// 2-6. Current StaticStmt is InvokeStmt
 				else if (s instanceof InvokeStmt) {
+					//TODO concrete invoke
 					InvokeStmt iS = (InvokeStmt) s;
 					StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 					StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
@@ -457,10 +458,7 @@ public class Execution {
 				return false;
 		return true;
 	}
-	/*TODO plan for loops:
-	 * 1. When making own decision, check pathChoices, if there are choices of that IfStmt, find the most recent one and go the opposite direction
-	 * 2. When building ToDoPath for the newDirection, if the newDirection already happened before this, then do not build ToDoPath
-	 * */
+
 	private ArrayList<String> getRemainingDirections(StaticStmt theS, String choice, String stmtInfo, StaticMethod m, PathSummary pS) {
 		ArrayList<String> remainingDirections = new ArrayList<String>();
 		if (theS instanceof IfStmt) {
@@ -540,10 +538,6 @@ public class Execution {
 		return nextLineNumber;
 	}
 	
-	/*TODO plan for loops:
-	 * 1. When making own decision, check pathChoices, if there are choices of that IfStmt, find the most recent one and go the opposite direction
-	 * 2. When building ToDoPath for the newDirection, if the newDirection already happened before this, then do not build ToDoPath
-	 * */
 	private String makeAPathChoice(StaticStmt theS, String stmtInfo, StaticMethod m, PathSummary pS) {
 		String choice = "";
 		if (theS instanceof IfStmt) {
@@ -637,7 +631,7 @@ public class Execution {
 		System.out.println("========================");
 	}
 	
-	private void printOutToDoPath(ToDoPath toDoPath) {
+	void printOutToDoPath(ToDoPath toDoPath) {
 		System.out.println("[PastChoice]");
 		for (String s : toDoPath.getPathChoices())
 			System.out.print("   " + s);
