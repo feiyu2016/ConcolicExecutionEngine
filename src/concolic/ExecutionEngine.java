@@ -26,9 +26,9 @@ public class ExecutionEngine {
 		this.testApp = testApp;
 	}
 	
-	public List<PathSummary> buildPathSummaries(boolean forceAllStep, UIModelGenerator builder) {
+	public ArrayList<PathSummary> buildPathSummaries(boolean forceAllStep, UIModelGenerator builder) {
 		
-		List<PathSummary> result = new ArrayList<PathSummary>();
+		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
 		
 		File objFile = new File(Paths.appDataDir + "/path.summary");
 		
@@ -48,15 +48,19 @@ public class ExecutionEngine {
 				result.addAll(psList);
 			}
 		}
+		else {
+			
+		}
+		
 		return result;
 	}
 	
 	
 	
-	public List<PathSummary> doFullSymbolic() {
+	public ArrayList<PathSummary> doFullSymbolic() {
 		Execution ex = new Execution(testApp);
 		ex.blackListOn = this.blackListOn;
-		List<PathSummary> result = new ArrayList<PathSummary>();
+		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
 		for (StaticClass c : testApp.getClasses()) {
 			for (StaticMethod m : c.getMethods()) {
 				ex.init();
