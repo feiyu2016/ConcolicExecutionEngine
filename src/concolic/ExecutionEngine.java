@@ -1,9 +1,11 @@
 package concolic;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import main.Paths;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
@@ -24,57 +26,62 @@ public class ExecutionEngine {
 		this.testApp = testApp;
 	}
 	
-	public StaticApp buildPathSummaries(boolean forceAllStep, UIModelGenerator builder) {
+	public List<PathSummary> buildPathSummaries(boolean forceAllStep, UIModelGenerator builder) {
 		
-		adb.uninstallApp(testApp.getPackageName());
-		adb.installApp(testApp.getSootAppPath());
-		adb.unlockScreen();
-		adb.pressHomeButton();
-		adb.startApp(testApp.getPackageName(), testApp.getMainActivity().getJavaName());
-		UIModelGraph model = builder.getUIModel();
-		//Execution ex = new Execution(testApp, builder.getExecutor());
-		Execution ex = new Execution(testApp);
-		ex.useAdb = this.useAdb;
-		ex.blackListOn = this.blackListOn;
+		List<PathSummary> result = new ArrayList<PathSummary>();
 		
-		for(Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
-			
-			
-			String methodSig = entry.getKey();
-			//System.out.println("\n[Method]\t\t" + methodSig);		
-			
-			List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
-			//System.out.println("[EventSequence]\t" + eventSeq);
-			
-			ex.init();
-			ex.setTargetMethod(methodSig);
-			ex.setSequence(eventSeq);
-			
-			ArrayList<PathSummary> psList = ex.doConcolic();
-			
-			testApp.findMethod(methodSig).setPathSummaries(psList);
+		File objFile = new File(Paths.appDataDir + "/path.summary");
+		
+		if (forceAllStep || !objFile.exists()) {
+			UIModelGraph model = builder.getUIModel();
+			Execution ex = new Execution(testApp);
+			ex.useAdb = this.useAdb;
+			ex.blackListOn = this.blackListOn;
+	
+			for( Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
+				String methodSig = entry.getKey();
+				List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
+				ex.init();
+				ex.setTargetMethod(methodSig);
+				ex.setSequence(eventSeq);
+				ArrayList<PathSummary> psList = ex.doConcolic();
+				result.addAll(psList);
+			}
 		}
-		
-		return testApp;
-		
+		return result;
 	}
 	
-	public StaticApp doFullSymbolic() {
+	
+	
+	public List<PathSummary> doFullSymbolic() {
 		Execution ex = new Execution(testApp);
 		ex.blackListOn = this.blackListOn;
+		List<PathSummary> result = new ArrayList<PathSummary>();
 		for (StaticClass c : testApp.getClasses()) {
 			for (StaticMethod m : c.getMethods()) {
 				ex.init();
 				ex.setTargetMethod(m.getSmaliSignature());
-				ArrayList<PathSummary> psList = ex.doFullSymbolic();
-				testApp.findMethod(m.getSmaliSignature()).setPathSummaries(psList);
+				ArrayList<PathSummary> psList = ex.doFullSymbolic(false);
+				result.addAll(psList);
 			}
 		}
-		return testApp;
+		return result;
+	}
+
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+
+	private void savePSList() {
+		
 	}
 	
-	
-	
+	private ArrayList<PathSummary> loadPSList() {
+		
+		return null;
+	}
 	
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();

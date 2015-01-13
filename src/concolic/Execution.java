@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import analysis.Expression;
 import smali.stmt.GotoStmt;
 import smali.stmt.IfStmt;
 import smali.stmt.InvokeStmt;
@@ -21,6 +20,7 @@ import zhen.version1.component.Event;
 import zhen.version1.component.WindowInformation;
 import zhen.version1.framework.Common;
 import zhen.version1.framework.Executer;
+import analysis.Expression;
 
 public class Execution {
 
@@ -64,7 +64,7 @@ public class Execution {
 		this.seq = seq;
 	}
 	
-	public ArrayList<PathSummary> doFullSymbolic(){
+	public ArrayList<PathSummary> doFullSymbolic(boolean addSequenceToInitialPS){
 		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
 			System.out.println("Skipping blacklisted method " + this.entryMethod.getSmaliSignature());
 			return this.pathSummaries;
@@ -77,6 +77,8 @@ public class Execution {
 		try {
 			ToDoPath toDoPath = new ToDoPath();
 			PathSummary initPS = new PathSummary();
+			if (addSequenceToInitialPS)
+				initPS.setEventSequence(seq);
 			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
 			initPS.setMethodSignature(this.entryMethod.getSmaliSignature());
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
@@ -105,7 +107,7 @@ public class Execution {
 			
 			if (seqConsistsOfLaunchOnly()) {
 				//System.out.println("[Event Sequence is launch only, doing full symbolic]");
-				return doFullSymbolic();
+				return doFullSymbolic(true);
 			}
 			
 			preparation();
@@ -115,7 +117,9 @@ public class Execution {
 			PathSummary pS_0 = new PathSummary();
 			pS_0.setSymbolicStates(initSymbolicStates(entryMethod));
 			pS_0.setMethodSignature(entryMethod.getSmaliSignature());
+			pS_0.setEventSequence(seq);
 			pS_0 = concreteExecution(pS_0, entryMethod, true);
+			
 			pathSummaries.add(pS_0);
 			
 			symbolicallyFinishingUp();
