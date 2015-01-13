@@ -1,6 +1,11 @@
 package concolic;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -21,6 +26,7 @@ public class ExecutionEngine {
 	private Adb adb = new Adb();
 	public boolean blackListOn = true;
 	public boolean useAdb = true;
+	private UIModelGenerator builder;
 	
 	public ExecutionEngine(StaticApp testApp) {
 		this.testApp = testApp;
@@ -33,11 +39,11 @@ public class ExecutionEngine {
 		File objFile = new File(Paths.appDataDir + "/path.summary");
 		
 		if (forceAllStep || !objFile.exists()) {
+			
 			UIModelGraph model = builder.getUIModel();
 			Execution ex = new Execution(testApp);
 			ex.useAdb = this.useAdb;
 			ex.blackListOn = this.blackListOn;
-	
 			for( Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
 				String methodSig = entry.getKey();
 				List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
@@ -47,9 +53,10 @@ public class ExecutionEngine {
 				ArrayList<PathSummary> psList = ex.doConcolic();
 				result.addAll(psList);
 			}
+			savePSList(result);
 		}
 		else {
-			
+			result = loadPSList(builder);
 		}
 		
 		return result;
@@ -78,13 +85,41 @@ public class ExecutionEngine {
 	////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////
 
-	private void savePSList() {
-		
+	private void savePSList(ArrayList<PathSummary> psList) {
+		File objFile = new File(Paths.appDataDir + "path.summaries");
+		if (objFile.exists())
+			objFile.delete();
+		System.out.print("\nSaving Path Summaries into file... ");
+		try {
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(objFile));
+			out.writeObject(psList);
+			out.close();
+			System.out.print("Done.\n");
+		}	catch (Exception e) {e.printStackTrace();}
 	}
 	
-	private ArrayList<PathSummary> loadPSList() {
-		
-		return null;
+	@SuppressWarnings("unchecked")
+	private ArrayList<PathSummary> loadPSList(UIModelGenerator builder) {
+		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
+		File objFile = new File(Paths.appDataDir + "path.summaries");
+		System.out.print("\nLoading Path Summaries... ");
+		try {
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(objFile));
+			result = (ArrayList<PathSummary>) in.readObject();
+			in.close();
+			System.out.print("Done.\n");
+		}
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			if (e.getMessage().contains("local class incompatible")) {
+				result = buildPathSummaries(true, builder);
+			}
+			else
+				e.printStackTrace();
+		}
+		return result;
 	}
 	
 	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
