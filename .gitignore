@@ -1,4 +1,4 @@
-/bin
-/generated
-/src/main
-/Utility_log
+bin/
+generated/
+src/main/
+Utility_log
