@@ -186,11 +186,11 @@ public class Execution {
 				while (!trimming.equals("TIMEOUT"))
 					trimming = jdb.readLine();
 				String bpInfo = jdbNewLine.substring(jdbNewLine.indexOf("Breakpoint hit: "));
-				System.out.println("[J]" + bpInfo);
+				System.out.println("  [J]" + jdbNewLine);
 				if (bpInfo.contains("Set breakpoint ")) {
 					jdbNewLine = jdb.readLine();
 					if (jdbNewLine == null)
-						throw (new Exception("Jdb might have crashed."));
+						throw (new Exception("Jdb is having performance problems, please reboot the device."));
 					continue;
 				}
 				String methodInfo = bpInfo.split(", ")[1];
@@ -279,19 +279,17 @@ public class Execution {
 				}
 				// 2-6. Current StaticStmt is InvokeStmt
 				else if (s instanceof InvokeStmt) {
-					//TODO concrete invoke
 					InvokeStmt iS = (InvokeStmt) s;
 					StaticMethod targetM = staticApp.findMethod(iS.getTargetSig());
 					StaticClass targetC = staticApp.findClassByDexName(iS.getTargetSig().split("->")[0]);
 					if (targetC != null && targetM != null && !(this.blackListOn && blacklistCheck(targetM))) {
-						//if (this.blackListOn && !blacklistCheck(targetM))
-						//	System.out.println("[Not Skipping blacklist]" + iS.getTargetSig());
 						for (int i : targetM.getSourceLineNumbers())
 							jdb.setBreakPointAtLine(targetC.getJavaName(), i);
 						jdb.cont();
 						PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 						PathSummary subPS = concreteExecution(trimmedPS, targetM, false);
-						pS.mergeWithInvokedPS(subPS);
+						//TODO concrete merge
+						pS.mergeWithInvokedPS(subPS, targetM.isStatic());
 					}
 					else if (iS.resultsMoved()) {
 						Expression symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS);
@@ -306,8 +304,10 @@ public class Execution {
 			if (jdbNewLine == null)
 				throw (new Exception("Jdb might have crashed."));
 		}
-		if (inMainMethod && printOutPS) {
-			printOutPathSummary(pS);
+		if (inMainMethod) {
+			System.out.println("");
+			if (printOutPS)
+				printOutPathSummary(pS);
 		}
 		return pS;
 	}
@@ -316,7 +316,7 @@ public class Execution {
 	private void symbolicallyFinishingUp() throws Exception{
 		int counter = 1;
 		while (toDoPathList.size()>0) {
-			System.out.println("[Symbolic Execution No." + counter++ + "]" + this.entryMethod.getSmaliSignature());
+			System.out.println("[Symbolic Execution No." + counter++ + "]\t" + this.entryMethod.getSmaliSignature());
 			ToDoPath toDoPath = toDoPathList.get(toDoPathList.size()-1);
 			toDoPathList.remove(toDoPathList.size()-1);
 			//printOutToDoPath(toDoPath);
@@ -399,7 +399,8 @@ public class Execution {
 						!(this.blackListOn && blacklistCheck(targetM))) {
 					PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 					PathSummary subPS = symbolicExecution(trimmedPS, targetM, toDoPath, false);
-					pS.mergeWithInvokedPS(subPS);
+					//TODO symbolic merge
+					pS.mergeWithInvokedPS(subPS, targetM.isStatic());
 				}
 				else if (iS.resultsMoved()) {
 					Expression symbolOFromJavaAPI = generateJavaAPIReturnOperation(iS, pS);

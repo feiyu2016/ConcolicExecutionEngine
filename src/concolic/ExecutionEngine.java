@@ -10,11 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import main.Paths;
 import staticFamily.StaticApp;
 import staticFamily.StaticClass;
 import staticFamily.StaticMethod;
-import tools.Adb;
 import zhen.version1.UIModelGenerator;
 import zhen.version1.component.Event;
 import zhen.version1.component.UIModelGraph;
@@ -23,10 +21,8 @@ import zhen.version1.component.UIState;
 public class ExecutionEngine {
 
 	private StaticApp testApp = null;
-	private Adb adb = new Adb();
 	public boolean blackListOn = true;
 	public boolean useAdb = true;
-	private UIModelGenerator builder;
 	
 	public ExecutionEngine(StaticApp testApp) {
 		this.testApp = testApp;
@@ -36,23 +32,32 @@ public class ExecutionEngine {
 		
 		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
 		
-		File objFile = new File(Paths.appDataDir + "/path.summary");
-		
+		File objFile = new File(testApp.outPath + "/path.summaries");
+
 		if (forceAllStep || !objFile.exists()) {
 			
+			System.out.println("\nStarting Concolic Execution Engine...");
+			
 			UIModelGraph model = builder.getUIModel();
+			
 			Execution ex = new Execution(testApp);
 			ex.useAdb = this.useAdb;
 			ex.blackListOn = this.blackListOn;
-			for( Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet() ){
+			
+			for( Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet()) {
+				
 				String methodSig = entry.getKey();
 				List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
+				
 				ex.init();
 				ex.setTargetMethod(methodSig);
 				ex.setSequence(eventSeq);
+				
 				ArrayList<PathSummary> psList = ex.doConcolic();
 				result.addAll(psList);
+				
 			}
+			
 			savePSList(result);
 		}
 		else {
@@ -86,7 +91,7 @@ public class ExecutionEngine {
 	////////////////////////////////////////////////////////////////////////////////////
 
 	private void savePSList(ArrayList<PathSummary> psList) {
-		File objFile = new File(Paths.appDataDir + "path.summaries");
+		File objFile = new File(testApp.outPath + "/path.summaries");
 		if (objFile.exists())
 			objFile.delete();
 		System.out.print("\nSaving Path Summaries into file... ");
@@ -101,7 +106,7 @@ public class ExecutionEngine {
 	@SuppressWarnings("unchecked")
 	private ArrayList<PathSummary> loadPSList(UIModelGenerator builder) {
 		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
-		File objFile = new File(Paths.appDataDir + "path.summaries");
+		File objFile = new File(testApp.outPath + "/path.summaries");
 		System.out.print("\nLoading Path Summaries... ");
 		try {
 			ObjectInputStream in = new ObjectInputStream(new FileInputStream(objFile));
@@ -122,7 +127,7 @@ public class ExecutionEngine {
 		return result;
 	}
 	
-	private List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
+	public List<Event> generateFullSequence(List<Event> seqFromMap, UIModelGraph model) {
 		List<Event> result = new ArrayList<Event>();
 		List<Event> trimmedSeqFromMap = new ArrayList<Event>();
 		for (Event e : seqFromMap) {

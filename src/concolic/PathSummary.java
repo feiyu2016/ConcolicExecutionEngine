@@ -83,6 +83,7 @@ public class PathSummary implements Serializable{
 	}
 	
 	public void updatePathCondition(Expression newCond) {
+		
 		Expression left = (Expression) newCond.getChildAt(0);
 		Expression right = (Expression) newCond.getChildAt(1);
 		Expression updatedLeft = this.findExistingExpression(left);
@@ -94,9 +95,11 @@ public class PathSummary implements Serializable{
 			newCond.insert(updatedRight, 1);
 		}
 		this.pathCondition.add(newCond);
+		
 	}
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 	public void updateReturnSymbol(String vName) throws Exception{
+
 		int index = getIndexOfOperationWithLeft(vName);
 		if (index < 0)
 			throw (new Exception("Can't find the assignment of returned variable '" + vName + "'from symbolicStates"));
@@ -110,6 +113,7 @@ public class PathSummary implements Serializable{
 			if (ExpressionContains(left, assignRight))
 				left.replace(assignRight, new Expression("$return"));
 		}
+		
 	}
 	
 
@@ -130,10 +134,20 @@ public class PathSummary implements Serializable{
 				left.insert(updatedObj, 1);
 			}
 		}
+		// if right is '$Finstance>>a>>v0', replace v0 first
+		if (right.getUserObject().toString().equals("$Finstance")) {
+			Expression obj = (Expression) right.getChildAt(1);
+			Expression updatedObj = this.findExistingExpression(obj);
+			if (updatedObj != null) {
+				right.remove(1);
+				right.insert(updatedObj, 1);
+			}
+		}
+		
 		int index = getIndexOfOperationWithLeft(left);
 		String op = right.getUserObject().toString();
 		if (op.equals("$return")) {
-			//5 v0 = $return
+			// 5 v0 = $return
 			int assignIndex = getIndexOfOperationWithLeft("$return");
 			Expression assignEx = this.symbolicStates.get(assignIndex);
 			assignEx.remove(0);
@@ -159,7 +173,7 @@ public class PathSummary implements Serializable{
 			}
 		}
 		else if (right.getChildCount() == 0 || op.equals("$Fstatic")) {
-			//1&4 v0 = v1 or $Fstatic sig
+			// 1&4 v0 = v1 or $Fstatic sig
 			// left = v0
 			// right = v1 or $Fstatic sig
 			if (!op.startsWith("#")) {
@@ -175,10 +189,18 @@ public class PathSummary implements Serializable{
 		}
 		else if (op.equals("$Finstance")) {
 			//3 v0 = sig $Finstance v1
-			Expression obj = (Expression) right.getChildAt(1);
-			Expression updatedObj = this.findExistingExpression(obj);
-			right.remove(1);
-			right.insert(updatedObj, 1);
+			Expression quickUpdate = this.findExistingExpression(right);
+			if (quickUpdate != null) {
+				newEx.remove(1);
+				newEx.insert(quickUpdate, 1);
+			} else {
+				Expression obj = (Expression) right.getChildAt(1);
+				Expression updatedObj = this.findExistingExpression(obj);
+				if (updatedObj != null) {
+					right.remove(1);
+					right.insert(updatedObj, 1);
+				}
+			}
 			if (index > -1)
 				this.symbolicStates.remove(index);
 			this.symbolicStates.add(newEx);
@@ -202,24 +224,59 @@ public class PathSummary implements Serializable{
 	}
 	
 	
-	public void mergeWithInvokedPS(PathSummary subPS) {
+	public void mergeWithInvokedPS(PathSummary subPS, boolean invokeStatic) {
+		
 		this.executionLog = subPS.getExecutionLog();
 		this.pathChoices = subPS.getPathChoices();
 		this.pathCondition = subPS.getPathCondition();
+		// to add:
+		// 1 $return = ... 
+		// 2 $Fstatic = ...
+		// 3. the 'this' object in a NON-STATIC method
+		
 		for (Expression ex : subPS.getSymbolicStates()) {
-			// to add:
-			// 1 $return = ... 
-			// 2 $Fstatic = ...
 			Expression left = (Expression) ex.getChildAt(0);
+			// 1
 			if (ExpressionContains(left, "$return")) {
 				this.symbolicStates.add(ex);
 			}
+			// 2
 			else if (ExpressionContains(left, "$Fstatic")) {
 				int index = this.getIndexOfOperationWithLeft(left);
 				if (index > -1)
 					this.symbolicStates.remove(index);
 				this.symbolicStates.add(ex);
 			}
+		}
+		
+		// 3
+		// find p0 = ?
+		// if ExpressionContains(left, "?"), add
+		if (!invokeStatic) {
+			
+			Expression thisObj = null;
+			
+			for (int i = 0, len = subPS.getSymbolicStates().size(); i < len; i++) {
+				Expression ex = subPS.getSymbolicStates().get(i);
+				Expression left = (Expression) ex.getChildAt(0);
+				if (left.equals(new Expression("p0"))) {
+					thisObj = (Expression) ex.getChildAt(1);
+					break;
+				}
+			}
+			
+
+			if (thisObj != null)
+				for (Expression ex : subPS.getSymbolicStates()) {
+					Expression left = (Expression) ex.getChildAt(0);
+					if (ExpressionContains(left, thisObj)) {
+						int index = this.getIndexOfOperationWithLeft(left);
+						if (index > -1)
+							this.symbolicStates.remove(index);
+						this.symbolicStates.add(ex);
+					}
+				}
+			
 		}
 	}
 	
