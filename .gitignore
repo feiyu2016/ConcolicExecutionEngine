@@ -1,2 +1,4 @@
-bin/
-src/main/
+/bin
+/generated
+/src/main
+/Utility_log
