@@ -65,14 +65,17 @@ public class Execution {
 	}
 	
 	public ArrayList<PathSummary> doFullSymbolic(boolean addSequenceToInitialPS){
+		
 		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
 			System.out.println("Skipping blacklisted method " + this.entryMethod.getSmaliSignature());
-			return this.pathSummaries;
+			return new ArrayList<PathSummary>();
 		}
+		
 		if (this.entryMethod.getSmaliStmts().size() < 1) {
 			System.out.println("Empty method " + this.entryMethod.getSmaliSignature());
-			return this.pathSummaries;
+			return new ArrayList<PathSummary>();
 		}
+		
 		System.out.println("generating symbolic PathSummary for " + this.entryMethod.getSmaliSignature() + " ...");
 		try {
 			ToDoPath toDoPath = new ToDoPath();
@@ -84,31 +87,30 @@ public class Execution {
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
 			symbolicallyFinishingUp();
-			//System.out.println("\nTotal number of PS: " + pathSummaries.size());
 		}	catch (Exception e) {e.printStackTrace();}
+		
 		return this.pathSummaries;
 		
 	}
 	
 	public ArrayList<PathSummary> doConcolic() {
-		//if (!this.entryMethod.getSmaliSignature().equals("Lthe/app/Irwin$3;->onClick(Landroid/view/View;)V"))
-		//	return this.pathSummaries;
+
 		if (this.blackListOn && blacklistCheck(this.entryMethod)) {
-			//System.out.println("[Current Method is on Blacklist, skipped]");
+			System.out.println("Skipping blacklisted method " + this.entryMethod.getSmaliSignature());
+			return new ArrayList<PathSummary>();
+		}
+		
+		if (this.entryMethod.getSmaliStmts().size() < 1) {
+			System.out.println("Empty method " + this.entryMethod.getSmaliSignature());
 			return this.pathSummaries;
 		}
+		
 		System.out.println("\n[Method]\t\t" + this.entryMethod.getSmaliSignature());
 		System.out.println("[EventSequence]\t" + this.seq);
-		if (this.entryMethod.getSmaliStmts().size() < 1) {
-			//System.out.println("[Empty Method]");
-			return this.pathSummaries;
-		}
 		try {
 			
-			if (seqConsistsOfLaunchOnly()) {
-				//System.out.println("[Event Sequence is launch only, doing full symbolic]");
+			if (seqConsistsOfLaunchOnly())
 				return doFullSymbolic(true);
-			}
 			
 			preparation();
 
@@ -288,7 +290,6 @@ public class Execution {
 						jdb.cont();
 						PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 						PathSummary subPS = concreteExecution(trimmedPS, targetM, false);
-						//TODO concrete merge
 						pS.mergeWithInvokedPS(subPS, targetM.isStatic());
 					}
 					else if (iS.resultsMoved()) {
@@ -319,7 +320,6 @@ public class Execution {
 			System.out.println("[Symbolic Execution No." + counter++ + "]\t" + this.entryMethod.getSmaliSignature());
 			ToDoPath toDoPath = toDoPathList.get(toDoPathList.size()-1);
 			toDoPathList.remove(toDoPathList.size()-1);
-			//printOutToDoPath(toDoPath);
 			PathSummary initPS = new PathSummary();
 			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
 			initPS.setMethodSignature(entryMethod.getSmaliSignature());
@@ -343,11 +343,9 @@ public class Execution {
 				break;
 			}
 			else if (s.generatesSymbol()) {
-				//System.out.println("[feeding newEx]" + s.getExpression().toYicesStatement());
 				pS.updateSymbolicStates(s.getExpression());
 			}
 			else if (s.hasExpression()) {
-				//System.out.println("[feeding newEx]" + s.getExpression().toYicesStatement());
 				pS.updateSymbolicStates(s.getExpression());
 			}
 			else if (s.updatesPathCondition()) {
@@ -399,7 +397,6 @@ public class Execution {
 						!(this.blackListOn && blacklistCheck(targetM))) {
 					PathSummary trimmedPS = trimPSForInvoke(pS, iS.getParams());
 					PathSummary subPS = symbolicExecution(trimmedPS, targetM, toDoPath, false);
-					//TODO symbolic merge
 					pS.mergeWithInvokedPS(subPS, targetM.isStatic());
 				}
 				else if (iS.resultsMoved()) {
@@ -658,24 +655,6 @@ public class Execution {
 		return symbolicStates;
 	}
 	
-/*	private Operation updateConcreteSymbol(Operation newSymbolO) {
-		
-		Operation result = newSymbolO;
-		String[] parts = result.getRightA().split(">>");
-		if (parts.length == 3) {
-			ArrayList<String> jdbLocals = jdb.getLocals();
-			for (String jL : jdbLocals) {
-				String left = jL.split(" = ")[0];
-				String right = jL.split(" = ")[1];
-				if (left.equals("wenhao" + parts[2])) {
-					parts[2] = right.replace("(", "<").replace(")", ">").replace("instance of ", "");
-					break;
-				}
-			}
-			result.setRightA(parts[0] + ">>" + parts[1] + ">>" + parts[2]);
-		}
-		return result;
-	}*/
 	private String getConcreteValue(String vName) {
 		ArrayList<String> jdbLocals = jdb.getLocals();
 		for (String jL : jdbLocals) {
