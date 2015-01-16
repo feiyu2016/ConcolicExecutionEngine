@@ -40,7 +40,8 @@ public class ExecutionEngine {
 			
 			UIModelGraph model = builder.getUIModel();
 			
-			Execution ex = new Execution(testApp);
+			//Execution ex = new Execution(testApp);
+			Execution ex = new Execution(testApp, builder.getExecutor());
 			ex.useAdb = this.useAdb;
 			ex.blackListOn = this.blackListOn;
 			

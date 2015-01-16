@@ -152,14 +152,15 @@ public class Execution {
 		jdb.init(staticApp.getPackageName());
 		System.out.println("Done.");
 		
-		System.out.print("\nGoing to Target Layout...  ");
+		System.out.println("\nGoing to Target Layout...");
 		
 		for (int i = 0, len = seq.size()-1; i < len; i++) {
 			Event e = seq.get(i);
 			if (e.getEventType() != Event.iLAUNCH) {
 				if (!this.useAdb) {
-				this.executer.applyEvent(e);
-				WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
+					System.out.println("[Executor]" + e);
+					this.executer.applyEvent(e);
+					WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
 				}
 				else {
 					String x = e.getValue(Common.event_att_click_x).toString();
@@ -169,7 +170,6 @@ public class Execution {
 			}
 		}
 		
-		System.out.println("Done.");
 		
 		for (int i : entryMethod.getSourceLineNumbers()) {
 			jdb.setBreakPointAtLine(entryMethod.getDeclaringClass(staticApp).getJavaName(), i);

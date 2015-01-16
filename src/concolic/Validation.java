@@ -116,12 +116,13 @@ public class Validation {
 		jdb.init(staticApp.getPackageName());
 		System.out.println("Done.");
 		
-		System.out.print("\nGoing to Target Layout...  ");
+		System.out.println("\nGoing to Target Layout...");
 		
 		for (int i = 0, len = seq.size()-1; i < len; i++) {
 			Event e = seq.get(i);
 			if (e.getEventType() != Event.iLAUNCH) {
 				if (!this.useAdb) {
+					System.out.println("[Executer]" + e);
 					this.executer.applyEvent(e);
 					WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
 				}
@@ -132,9 +133,7 @@ public class Validation {
 				}
 			}
 		}
-		
-		System.out.println("Done.");
-		
+				
 		System.out.print("\nSetting Break Points for Target Lines... ");
 		for (String s : this.targetLines) {
 			String className = s.split(":")[0];

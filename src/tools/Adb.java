@@ -4,9 +4,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import main.Paths;
+import zhen.version1.component.Event;
 
 public class Adb {
 
+	
+	public void applyEvent(Event e) {
+		
+	}
 	
 	public void click(int x, int y) {
 		try {
