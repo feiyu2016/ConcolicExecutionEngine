@@ -86,7 +86,7 @@ public class Execution {
 			initPS.setMethodSignature(this.entryMethod.getSmaliSignature());
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
 			pathSummaries.add(newPS);
-			symbolicallyFinishingUp();
+			symbolicallyFinishingUp(false);
 		}	catch (Exception e) {e.printStackTrace();}
 		
 		return this.pathSummaries;
@@ -120,11 +120,12 @@ public class Execution {
 			pS_0.setSymbolicStates(initSymbolicStates(entryMethod));
 			pS_0.setMethodSignature(entryMethod.getSmaliSignature());
 			pS_0.setEventSequence(seq);
+			pS_0.setIsConcolic(true);
 			pS_0 = concreteExecution(pS_0, entryMethod, true);
 			
 			pathSummaries.add(pS_0);
 			
-			symbolicallyFinishingUp();
+			symbolicallyFinishingUp(true);
 			
 			jdb.exit();
 			
@@ -314,7 +315,7 @@ public class Execution {
 	}
 	
 
-	private void symbolicallyFinishingUp() throws Exception{
+	private void symbolicallyFinishingUp(boolean isConcolic) throws Exception{
 		int counter = 1;
 		while (toDoPathList.size()>0) {
 			System.out.println("[Symbolic Execution No." + counter++ + "]\t" + this.entryMethod.getSmaliSignature());
@@ -324,6 +325,8 @@ public class Execution {
 			initPS.setSymbolicStates(initSymbolicStates(entryMethod));
 			initPS.setMethodSignature(entryMethod.getSmaliSignature());
 			PathSummary newPS = symbolicExecution(initPS, entryMethod, toDoPath, true);
+			if (isConcolic)
+				newPS.setEventSequence(new ArrayList<Event>(Arrays.asList(seq.get(seq.size()-1))));
 			pathSummaries.add(newPS);
 		}
 	}

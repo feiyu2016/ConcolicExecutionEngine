@@ -20,6 +20,7 @@ public class PathSummary implements Serializable{
 	
 	private List<Event> eventSequence = new ArrayList<Event>();
 	
+	private boolean isConcolic = false;
 	
 	public ArrayList<String> getExecutionLog() {
 		return executionLog;
@@ -361,5 +362,13 @@ public class PathSummary implements Serializable{
 
 	public void setEventSequence(List<Event> seq) {
 		this.eventSequence = seq;
+	}
+
+	public boolean isConcolic() {
+		return isConcolic;
+	}
+
+	public void setIsConcolic(boolean isConcolic) {
+		this.isConcolic = isConcolic;
 	}
 }
