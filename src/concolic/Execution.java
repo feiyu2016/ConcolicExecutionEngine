@@ -120,7 +120,7 @@ public class Execution {
 			pS_0.setSymbolicStates(initSymbolicStates(entryMethod));
 			pS_0.setMethodSignature(entryMethod.getSmaliSignature());
 			pS_0.setEventSequence(seq);
-			pS_0.setIsConcolic(true);
+			pS_0.setIsConcrete(true);
 			pS_0 = concreteExecution(pS_0, entryMethod, true);
 			
 			pathSummaries.add(pS_0);
