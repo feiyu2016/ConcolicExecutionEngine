@@ -1,6 +1,7 @@
 package concolic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import staticFamily.StaticApp;
@@ -59,6 +60,10 @@ public class Validation {
 			else		System.out.println("\nValidation Result: Failed. jdb result and target line sequence mismatch.");
 		}
 		return result;
+	}
+	
+	public boolean validateSequence(List<Event> seq, String targetLine) {
+		return validateSequence(seq, new ArrayList<String>(Arrays.asList(targetLine)));
 	}
 	
 	private boolean compare(ArrayList<String> A, ArrayList<String> B) {
