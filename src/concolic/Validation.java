@@ -82,8 +82,10 @@ public class Validation {
 			if (jdbLine.startsWith("Breakpoint hit: ")) {
 				if (this.verbose)
 					System.out.println("  [J]" + jdbLine);
-				String lineInfo = parseJDBLine(jdbLine);
-				result.add(lineInfo);
+				if (!jdbLine.startsWith("Breakpoint hit: Set breakpoint")){
+					String lineInfo = parseJDBLine(jdbLine);
+					result.add(lineInfo);
+				}
 				jdb.cont();
 			}
 			jdbLine = jdb.readLine();
