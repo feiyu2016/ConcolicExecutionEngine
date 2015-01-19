@@ -84,7 +84,7 @@ public class PathSummary implements Serializable{
 	}
 	
 	public void updatePathCondition(Expression newCond) {
-		
+		//System.out.println("[newCond]" + newCond.toYicesStatement());
 		Expression left = (Expression) newCond.getChildAt(0);
 		Expression right = (Expression) newCond.getChildAt(1);
 		Expression updatedLeft = this.findExistingExpression(left);
