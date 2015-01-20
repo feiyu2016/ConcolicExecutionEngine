@@ -34,6 +34,7 @@ public class Execution {
 	private ArrayList<ToDoPath> toDoPathList = new ArrayList<ToDoPath>();
 	public boolean printOutPS = false;
 	public boolean blackListOn = false;
+	public boolean debug = false;
 	public boolean useAdb = true;
 	
 	public Execution(StaticApp staticApp) {
@@ -199,7 +200,7 @@ public class Execution {
 				String methodInfo = bpInfo.split(", ")[1];
 				String cN = methodInfo.substring(0, methodInfo.lastIndexOf("."));
 				String mN = methodInfo.substring(methodInfo.lastIndexOf(".")+1).replace("(", "").replace(")", "");
-				String lineInfo = bpInfo.split(", ")[2];
+				String lineInfo = bpInfo.split(", ")[2].replace(",", "");
 				int newHitLine = Integer.parseInt(lineInfo.substring(lineInfo.indexOf("=")+1, lineInfo.indexOf(" ")));
 				StaticClass c = staticApp.findClassByJavaName(cN);
 				if (c == null)
@@ -338,7 +339,8 @@ public class Execution {
 		String className = m.getDeclaringClass(staticApp).getJavaName();
 		StaticStmt s = allStmts.get(0);
 		while (true) {
-			//System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
+			if (this.debug)
+				System.out.println("[Current Stmt]" + className + ":" + s.getSourceLineNumber() + "   " + s.getTheStmt());
 			pS.addExecutionLog(className + ":" + s.getSourceLineNumber());
 			if (s.endsMethod()) {
 				if (s instanceof ReturnStmt && !((ReturnStmt) s).returnsVoid())
@@ -574,7 +576,8 @@ public class Execution {
 		else	oldParams = new ArrayList<String>(Arrays.asList(rawParams.split(", ")));
 		for (String oldp : oldParams) {
 			Expression newP = pS.findExistingExpression(new Expression(oldp));
-			right.add(newP);
+			if (newP != null)
+				right.add(newP);
 		}
 		Expression result = new Expression("=");
 		result.add(left);
