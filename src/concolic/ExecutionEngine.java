@@ -23,6 +23,7 @@ public class ExecutionEngine {
 	private StaticApp testApp = null;
 	public boolean blackListOn = true;
 	public boolean useAdb = true;
+	public boolean debug = true;
 	
 	public ExecutionEngine(StaticApp testApp) {
 		this.testApp = testApp;
@@ -44,10 +45,12 @@ public class ExecutionEngine {
 			Execution ex = new Execution(testApp, builder.getExecutor());
 			ex.useAdb = this.useAdb;
 			ex.blackListOn = this.blackListOn;
-			
+			ex.debug = this.debug;
 			for( Entry<String, List<Event>>  entry : builder.getEventMethodMap().entrySet()) {
 				
 				String methodSig = entry.getKey();
+/*				if (!methodSig.equals("Lnet/mandaria/tippytipperlibrary/activities/TippyTipper;->onCreate(Landroid/os/Bundle;)V"))
+					continue;*/
 				List<Event> eventSeq = generateFullSequence(entry.getValue(), model);
 				
 				ex.init();
@@ -73,6 +76,7 @@ public class ExecutionEngine {
 	public ArrayList<PathSummary> doFullSymbolic() {
 		Execution ex = new Execution(testApp);
 		ex.blackListOn = this.blackListOn;
+		ex.debug = this.debug;
 		ArrayList<PathSummary> result = new ArrayList<PathSummary>();
 		for (StaticClass c : testApp.getClasses()) {
 			for (StaticMethod m : c.getMethods()) {

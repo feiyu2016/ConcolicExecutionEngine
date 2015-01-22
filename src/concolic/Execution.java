@@ -164,9 +164,7 @@ public class Execution {
 					WindowInformation.checkVisibleWindowAndCloseKeyBoard(executer);
 				}
 				else {
-					String x = e.getValue(Common.event_att_click_x).toString();
-					String y = e.getValue(Common.event_att_click_y).toString();
-					adb.click(x + " " + y);
+					adb.applyEvent(e);
 				}
 			}
 		}
@@ -652,8 +650,11 @@ public class Execution {
 		for (int i = 0; i < paramCount; i++) {
 			Expression ex = new Expression("=");
 			ex.add(new Expression("p" + i));
-			if (!entryMethod.isStatic() && i == 0)
-				ex.add(new Expression("$this"));
+			if (!entryMethod.isStatic() && i == 0) {
+				Expression thisEx = new Expression("$this");
+				thisEx.add(new Expression(targetM.getDeclaringClass(this.staticApp).getDexName()));
+				ex.add(thisEx);
+			}
 			else
 				ex.add(new Expression("$parameter" + i));
 			symbolicStates.add(ex);

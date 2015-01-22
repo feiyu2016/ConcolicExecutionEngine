@@ -5,12 +5,23 @@ import java.io.InputStreamReader;
 
 import main.Paths;
 import zhen.version1.component.Event;
+import zhen.version1.framework.Common;
 
 public class Adb {
 
 	
 	public void applyEvent(Event e) {
-		
+		switch (e.getEventType()) {
+		case Event.iONCLICK:
+			String x = e.getValue(Common.event_att_click_x).toString();
+			String y = e.getValue(Common.event_att_click_y).toString();
+			click(x + " " + y);
+			break;
+		case Event.iPRESS:
+			String key = (String) e.getValue(Common.event_att_keycode);
+			keyEvent(key);
+			break;
+		}
 	}
 	
 	public void click(int x, int y) {
@@ -44,6 +55,13 @@ public class Adb {
 		return "";
 	}
 		
+	public void keyEvent(String key) {
+		try {
+			Runtime.getRuntime().exec(Paths.adbPath + " shell input keyevent " + key).waitFor();
+			Thread.sleep(300);
+		}	catch (Exception e) {e.printStackTrace();}
+	}
+	
 	public void rebootDevice() {
 		try {
 			Runtime.getRuntime().exec(Paths.adbPath + " reboot").waitFor();
