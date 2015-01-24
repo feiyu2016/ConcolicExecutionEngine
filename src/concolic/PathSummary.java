@@ -67,6 +67,7 @@ public class PathSummary implements Serializable{
 			pathChoices.add(pathChoice);
 		result.setPathChoices(pathChoices);
 		result.setMethodSignature(this.methodSignature);
+		result.isConcrete = this.isConcrete;
 		return result;
 	}
 
@@ -371,4 +372,5 @@ public class PathSummary implements Serializable{
 	public void setIsConcrete(boolean isConcrete) {
 		this.isConcrete = isConcrete;
 	}
+	
 }
