@@ -44,7 +44,7 @@ public class Jdb {
 		ExecutorService executor = Executors.newFixedThreadPool(1);
 		Future<String> newestLine = executor.submit(jdbL);
 		try {
-			result = newestLine.get(300, TimeUnit.MILLISECONDS);
+			result = newestLine.get(1000, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		} catch (TimeoutException e) {
